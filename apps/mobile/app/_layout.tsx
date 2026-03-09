@@ -9,9 +9,9 @@ export default function RootLayout() {
         contentStyle: { backgroundColor: "#0f172a" },
       }}
     >
-      <Stack.Screen name="index" options={{ title: "Loki" }} />
-      <Stack.Screen name="login" options={{ title: "Login" }} />
-      <Stack.Screen name="chat" options={{ title: "Chats" }} />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="login" options={{ headerShown: false }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
     </Stack>
   );
 }

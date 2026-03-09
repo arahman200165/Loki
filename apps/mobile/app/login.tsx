@@ -71,7 +71,7 @@ export default function LoginScreen() {
       }
 
       Alert.alert("Success", data.message || "Logged in successfully.");
-      router.replace("/chat");
+      router.replace("/(tabs)/chat");
     } catch (error) {
       console.log(error);
       Alert.alert(
