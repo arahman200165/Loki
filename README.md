@@ -1,9 +1,12 @@
-# LokiServer
+# Loki Monorepo
 
-Start with these commands:
+## Apps
+- `apps/server` - Node.js backend
+- `apps/mobile` - React Native app
 
+## Packages
+- `packages/shared` - shared types, constants, utils
+
+## Run backend
 npm install
-
-cp .env.example .env
-
-npm run dev
+npm run server:dev
