@@ -1,5 +1,5 @@
 # Loki Monorepo
-
+# Areta sucks
 ## Apps
 - `apps/server` - Node.js backend
 - `apps/mobile` - React Native app
