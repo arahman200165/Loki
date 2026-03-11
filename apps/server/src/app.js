@@ -5,8 +5,11 @@ import morgan from 'morgan';
 
 import { env } from './config/env.js';
 import apiRoutes from './routes/index.js';
+import authRoutes from './routes/authRoutes.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { requireApiKey } from './middleware/requireApiKey.js';
+import { requireSessionAuth } from './middleware/requireSessionAuth.js';
 
 const app = express();
 
@@ -27,6 +30,8 @@ app.get('/', (req, res) => {
   });
 });
 
+app.use(`${env.apiPrefix}/auth`, requireApiKey, authRoutes);
+app.use('/api', requireApiKey, requireSessionAuth);
 app.use(env.apiPrefix, apiRoutes);
 
 app.use(notFound);
