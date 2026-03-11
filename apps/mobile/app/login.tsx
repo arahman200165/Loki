@@ -9,19 +9,41 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { router } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const API_BASE_URL = "https://loki-0pfz.onrender.com/api";
+const API_KEY = process.env.EXPO_PUBLIC_API_KEY ?? "dev-mobile-api-key";
+const API_KEY_HEADER_NAME = "x-api-key";
+
+const getApiHeaders = (includeJson = false, token?: string) => {
+  const headers: Record<string, string> = {
+    [API_KEY_HEADER_NAME]: API_KEY,
+  };
+
+  if (includeJson) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  return headers;
+};
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [authToken, setAuthToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [pingLoading, setPingLoading] = useState(false);
 
   const handlePingServer = async () => {
     setPingLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/v1/health`);
+      const response = await fetch(`${API_BASE_URL}/v1/health`, {
+        headers: getApiHeaders(false, authToken ?? undefined),
+      });
       const data = await response.json();
       if (response.ok) {
         Alert.alert(
@@ -35,6 +57,7 @@ export default function LoginScreen() {
         );
       }
     } catch (error) {
+      console.log(error);
       Alert.alert(
         "Ping Error",
         "Could not reach server. Check your backend URL.",
@@ -44,8 +67,8 @@ export default function LoginScreen() {
     }
   };
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert("Missing fields", "Please enter your email and password.");
+    if (!username || !password) {
+      Alert.alert("Missing fields", "Please enter your username and password.");
       return;
     }
 
@@ -54,11 +77,9 @@ export default function LoginScreen() {
 
       const response = await fetch(`${API_BASE_URL}/v1/auth/login`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: getApiHeaders(true),
         body: JSON.stringify({
-          email,
+          username,
           password,
         }),
       });
@@ -68,6 +89,14 @@ export default function LoginScreen() {
       if (!response.ok) {
         Alert.alert("Login failed", data.message || "Something went wrong.");
         return;
+      }
+
+      if (data?.token) {
+        await AsyncStorage.multiSet([
+          ["authToken", data.token],
+          ["authUser", JSON.stringify(data.user ?? { username })],
+        ]);
+        setAuthToken(data.token);
       }
 
       Alert.alert("Success", data.message || "Logged in successfully.");
@@ -90,12 +119,11 @@ export default function LoginScreen() {
 
       <TextInput
         style={styles.input}
-        placeholder="Email"
+        placeholder="Username"
         placeholderTextColor="#94a3b8"
         autoCapitalize="none"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
+        value={username}
+        onChangeText={setUsername}
       />
 
       <TextInput

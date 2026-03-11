@@ -23,7 +23,7 @@ export default function ChatScreen() {
         style: "destructive",
         onPress: async () => {
           try {
-            // await AsyncStorage.multiRemove(["authToken", "user"]);
+            await AsyncStorage.multiRemove(["authToken", "authUser"]);
             router.replace("/login");
           } catch (error) {
             console.log("Logout error:", error);
