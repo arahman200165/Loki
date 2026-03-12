@@ -65,7 +65,10 @@ export default function ChatScreen() {
         )}
       />
 
-      <Pressable style={styles.newChatFab}>
+      <Pressable
+        style={styles.newChatFab}
+        onPress={() => router.push("/chat/newchat")}
+      >
         <Ionicons name="add" size={28} color="#fff" />
       </Pressable>
     </View>
