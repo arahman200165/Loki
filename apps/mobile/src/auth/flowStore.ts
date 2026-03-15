@@ -24,7 +24,12 @@ export const AUTH_STORAGE_KEYS = {
   resolvedLinkSessionId: "authResolvedLinkSessionId",
   pendingDeviceLabel: "authPendingDeviceLabel",
   pendingDevicePlatform: "authPendingDevicePlatform",
+  localPasswordFailedAttempts: "authLocalPasswordFailedAttempts",
+  localPasswordLockUntilMs: "authLocalPasswordLockUntilMs",
+  localPasswordLockStage: "authLocalPasswordLockStage",
 };
+
+export type LockMode = "none" | "biometric" | "pin" | "passphrase";
 
 export type AuthFlowState = {
   authToken: string | null;
@@ -37,7 +42,7 @@ export type AuthFlowState = {
   userPublicJwk: string | null;
   accountLocator: string | null;
   displayName: string | null;
-  lockMode: string | null;
+  lockMode: LockMode | null;
   recoveryPhrase: string[] | null;
   recoveryVerified: boolean;
   recoveryFileExported: boolean;
@@ -50,12 +55,33 @@ export type AuthFlowState = {
   resolvedLinkSessionId: string | null;
   pendingDeviceLabel: string | null;
   pendingDevicePlatform: string | null;
+  localPasswordFailedAttempts: number;
+  localPasswordLockUntilMs: number | null;
+  localPasswordLockStage: number;
 };
 
 const fromEntries = (pairs: readonly (readonly [string, string | null])[]) =>
   Object.fromEntries(pairs);
 
 const parseBoolean = (value: string | null) => value === "true";
+const parseLockMode = (value: string | null): LockMode | null => {
+  if (!value) {
+    return null;
+  }
+
+  if (value === "none" || value === "biometric" || value === "pin" || value === "passphrase") {
+    return value;
+  }
+
+  return null;
+};
+const parseNumber = (value: string | null) => {
+  if (!value) {
+    return null;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
 
 const parsePhrase = (value: string | null): string[] | null => {
   if (!value) {
@@ -88,7 +114,7 @@ export const loadAuthFlowState = async (): Promise<AuthFlowState> => {
     userPublicJwk: byKey[AUTH_STORAGE_KEYS.userPublicJwk] ?? null,
     accountLocator: byKey[AUTH_STORAGE_KEYS.accountLocator] ?? null,
     displayName: byKey[AUTH_STORAGE_KEYS.displayName] ?? null,
-    lockMode: byKey[AUTH_STORAGE_KEYS.lockMode] ?? null,
+    lockMode: parseLockMode(byKey[AUTH_STORAGE_KEYS.lockMode] ?? null),
     recoveryPhrase: parsePhrase(byKey[AUTH_STORAGE_KEYS.recoveryPhrase] ?? null),
     recoveryVerified: parseBoolean(byKey[AUTH_STORAGE_KEYS.recoveryVerified] ?? null),
     recoveryFileExported: parseBoolean(byKey[AUTH_STORAGE_KEYS.recoveryFileExported] ?? null),
@@ -101,15 +127,31 @@ export const loadAuthFlowState = async (): Promise<AuthFlowState> => {
     resolvedLinkSessionId: byKey[AUTH_STORAGE_KEYS.resolvedLinkSessionId] ?? null,
     pendingDeviceLabel: byKey[AUTH_STORAGE_KEYS.pendingDeviceLabel] ?? null,
     pendingDevicePlatform: byKey[AUTH_STORAGE_KEYS.pendingDevicePlatform] ?? null,
+    localPasswordFailedAttempts: parseNumber(
+      byKey[AUTH_STORAGE_KEYS.localPasswordFailedAttempts] ?? null,
+    ) ?? 0,
+    localPasswordLockUntilMs: parseNumber(byKey[AUTH_STORAGE_KEYS.localPasswordLockUntilMs] ?? null),
+    localPasswordLockStage: parseNumber(byKey[AUTH_STORAGE_KEYS.localPasswordLockStage] ?? null) ?? 0,
   };
 };
 
 export const saveAuthFlowPatch = async (patch: Partial<AuthFlowState>) => {
   const pairs: [string, string][] = [];
+  const removeKeys: string[] = [];
 
-  const set = (key: string, value: string | null | undefined) => {
+  const set = (key: string, value: string | number | null | undefined) => {
+    if (value === null) {
+      removeKeys.push(key);
+      return;
+    }
+
     if (typeof value === "string") {
       pairs.push([key, value]);
+      return;
+    }
+
+    if (typeof value === "number") {
+      pairs.push([key, String(value)]);
     }
   };
 
@@ -132,6 +174,9 @@ export const saveAuthFlowPatch = async (patch: Partial<AuthFlowState>) => {
   set(AUTH_STORAGE_KEYS.resolvedLinkSessionId, patch.resolvedLinkSessionId);
   set(AUTH_STORAGE_KEYS.pendingDeviceLabel, patch.pendingDeviceLabel);
   set(AUTH_STORAGE_KEYS.pendingDevicePlatform, patch.pendingDevicePlatform);
+  set(AUTH_STORAGE_KEYS.localPasswordFailedAttempts, patch.localPasswordFailedAttempts);
+  set(AUTH_STORAGE_KEYS.localPasswordLockUntilMs, patch.localPasswordLockUntilMs);
+  set(AUTH_STORAGE_KEYS.localPasswordLockStage, patch.localPasswordLockStage);
 
   if (Array.isArray(patch.recoveryPhrase)) {
     pairs.push([AUTH_STORAGE_KEYS.recoveryPhrase, JSON.stringify(patch.recoveryPhrase)]);
@@ -156,6 +201,10 @@ export const saveAuthFlowPatch = async (patch: Partial<AuthFlowState>) => {
   if (pairs.length) {
     await AsyncStorage.multiSet(pairs);
   }
+
+  if (removeKeys.length) {
+    await AsyncStorage.multiRemove(removeKeys);
+  }
 };
 
 export const clearTransientOnboardingState = async () => {
@@ -173,6 +222,9 @@ export const clearTransientOnboardingState = async () => {
     AUTH_STORAGE_KEYS.resolvedLinkSessionId,
     AUTH_STORAGE_KEYS.pendingDeviceLabel,
     AUTH_STORAGE_KEYS.pendingDevicePlatform,
+    AUTH_STORAGE_KEYS.localPasswordFailedAttempts,
+    AUTH_STORAGE_KEYS.localPasswordLockUntilMs,
+    AUTH_STORAGE_KEYS.localPasswordLockStage,
   ]);
 };
 
@@ -180,12 +232,28 @@ export const clearAuthSession = async () => {
   await AsyncStorage.multiRemove([
     AUTH_STORAGE_KEYS.authToken,
     AUTH_STORAGE_KEYS.userId,
-    AUTH_STORAGE_KEYS.deviceId,
   ]);
 };
 
-export const getEntryAuthRoute = async (): Promise<"/(auth)/unlock" | "/(auth)/welcome"> => {
+export const clearAllAuthFlowState = async () => {
+  await AsyncStorage.multiRemove(Object.values(AUTH_STORAGE_KEYS));
+};
+
+export const getEntryAuthRoute = async (): Promise<
+  "/(auth)/unlock" | "/(auth)/restore-or-add-device" | "/(auth)/welcome"
+> => {
   const state = await loadAuthFlowState();
   const hasDeviceIdentity = Boolean(state.deviceId && state.devicePrivateJwk);
-  return hasDeviceIdentity ? "/(auth)/unlock" : "/(auth)/welcome";
+  if (hasDeviceIdentity) {
+    return "/(auth)/unlock";
+  }
+
+  const hasReturningAccountHints = Boolean(
+    state.accountLocator ||
+      state.userPublicJwk ||
+      state.recoveryPublicJwk ||
+      (state.recoveryPhrase && state.recoveryPhrase.length),
+  );
+
+  return hasReturningAccountHints ? "/(auth)/restore-or-add-device" : "/(auth)/welcome";
 };

@@ -4,7 +4,9 @@ import { ActivityIndicator, View } from "react-native";
 import { getEntryAuthRoute } from "../src/auth/flowStore";
 
 export default function LegacyLoginRoute() {
-  const [route, setRoute] = useState<"/(auth)/unlock" | "/(auth)/welcome" | null>(null);
+  const [route, setRoute] = useState<
+    "/(auth)/unlock" | "/(auth)/restore-or-add-device" | "/(auth)/welcome" | null
+  >(null);
 
   useEffect(() => {
     const run = async () => {

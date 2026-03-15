@@ -1,11 +1,46 @@
 import { useEffect, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, NativeModules, Pressable, ScrollView, Text, View } from "react-native";
 import { router } from "expo-router";
 import { authStyles } from "../../src/auth/ui";
 import { loadAuthFlowState, saveAuthFlowPatch } from "../../src/auth/flowStore";
 
 export default function RecoveryPhraseViewScreen() {
   const [phrase, setPhrase] = useState<string[]>([]);
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+
+  const copyPhrase = async () => {
+    const text = phrase.join(" ").trim();
+    if (!text) {
+      return;
+    }
+
+    try {
+      if (globalThis.navigator?.clipboard?.writeText) {
+        await globalThis.navigator.clipboard.writeText(text);
+      } else {
+        const nativeClipboard =
+          (NativeModules as {
+            Clipboard?: { setString?: (value: string) => void };
+            ClipboardModule?: { setString?: (value: string) => void };
+          }).Clipboard ??
+          (NativeModules as {
+            ClipboardModule?: { setString?: (value: string) => void };
+          }).ClipboardModule;
+
+        if (!nativeClipboard?.setString) {
+          throw new Error("Clipboard is unavailable on this device.");
+        }
+
+        nativeClipboard.setString(text);
+      }
+
+      setCopyFeedback("Recovery phrase copied to clipboard.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Couldn't copy recovery phrase.";
+      setCopyFeedback(null);
+      Alert.alert("Copy failed", message);
+    }
+  };
 
   useEffect(() => {
     const run = async () => {
@@ -33,6 +68,11 @@ export default function RecoveryPhraseViewScreen() {
       <Text style={authStyles.warning}>
         Anyone with this phrase may be able to restore your account.
       </Text>
+      {copyFeedback ? <Text style={authStyles.helper}>{copyFeedback}</Text> : null}
+
+      <Pressable style={authStyles.secondaryButton} onPress={() => void copyPhrase()}>
+        <Text style={authStyles.secondaryText}>Copy phrase</Text>
+      </Pressable>
 
       <Pressable
         style={authStyles.primaryButton}

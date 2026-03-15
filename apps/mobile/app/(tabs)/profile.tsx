@@ -18,6 +18,10 @@ export default function ProfileScreen() {
       <Pressable style={styles.secondaryButton} onPress={() => router.push("/settings/devices")}>
         <Text style={styles.secondaryButtonText}>Devices</Text>
       </Pressable>
+
+      <Pressable style={styles.secondaryButton} onPress={() => router.push("/settings/app-lock")}>
+        <Text style={styles.secondaryButtonText}>App lock</Text>
+      </Pressable>
     </View>
   );
 }
