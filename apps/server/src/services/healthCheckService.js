@@ -9,8 +9,12 @@ export const runHealthCheck = async () => {
   };
 
   if (!env.databaseUrl) {
-    payload.database = { status: 'not_configured' };
-    return { statusCode: 200, payload };
+    payload.status = 'degraded';
+    payload.database = {
+      status: 'not_configured',
+      message: 'DATABASE_URL is not configured.'
+    };
+    return { statusCode: 503, payload };
   }
 
   try {

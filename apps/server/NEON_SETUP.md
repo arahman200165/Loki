@@ -36,12 +36,14 @@ In `apps/server/.env`:
 ```env
 DATABASE_URL=postgresql://<user>:<password>@<host>/<database>?sslmode=require
 DATABASE_SSL=true
+DATABASE_SSL_REJECT_UNAUTHORIZED=true
 DATABASE_POOL_MAX=10
 ```
 
 Notes:
 - `DATABASE_URL` is required for DB connectivity checks.
 - `DATABASE_SSL=true` is recommended for Neon.
+- `DATABASE_SSL_REJECT_UNAUTHORIZED=true` is recommended so TLS validates the server certificate.
 - `DATABASE_POOL_MAX` can stay `10` for local/dev starts.
 
 ## 5) Verify locally
@@ -63,8 +65,10 @@ If `DATABASE_URL` is missing, health will return:
 
 ```json
 {
+  "status": "degraded",
   "database": {
-    "status": "not_configured"
+    "status": "not_configured",
+    "message": "DATABASE_URL is not configured."
   }
 }
 ```

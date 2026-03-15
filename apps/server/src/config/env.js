@@ -13,5 +13,7 @@ export const env = {
   authPassword: process.env.AUTH_PASSWORD || 'loki-pass-123',
   databaseUrl: process.env.DATABASE_URL || '',
   databaseSsl: (process.env.DATABASE_SSL || 'true').toLowerCase() !== 'false',
+  databaseSslRejectUnauthorized:
+    (process.env.DATABASE_SSL_REJECT_UNAUTHORIZED || 'true').toLowerCase() !== 'false',
   databasePoolMax: Number(process.env.DATABASE_POOL_MAX || 10)
 };

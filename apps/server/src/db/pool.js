@@ -17,7 +17,9 @@ const createPool = () => {
     max: env.databasePoolMax,
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 10_000,
-    ssl: env.databaseSsl ? { rejectUnauthorized: false } : false
+    ssl: env.databaseSsl
+      ? { rejectUnauthorized: env.databaseSslRejectUnauthorized }
+      : false
   });
 
   nextPool.on('error', (error) => {
