@@ -22,7 +22,7 @@ const homePageStyles = `
   table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 640px;
+    min-width: 960px;
   }
   thead { background: #f1f5f9; }
   th, td {
@@ -33,6 +33,130 @@ const homePageStyles = `
     font-size: 14px;
   }
   tr:last-child td { border-bottom: none; }
+  .selected-row {
+    background: #eff6ff;
+  }
+  .api-explorer {
+    display: grid;
+    gap: 16px;
+  }
+  .filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 10px;
+  }
+  .filters label {
+    display: grid;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .filters input,
+  .filters select,
+  .credentials input,
+  .dynamic-inputs input,
+  textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 10px;
+    font: inherit;
+    color: var(--text);
+    background: #fff;
+  }
+  .api-summary {
+    display: flex;
+    gap: 8px 14px;
+    flex-wrap: wrap;
+    align-items: center;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .try-panel {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    background: #fcfdff;
+    display: grid;
+    gap: 12px;
+  }
+  .try-panel h3 {
+    margin: 0;
+  }
+  .credentials {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 10px;
+  }
+  .credentials label,
+  .body-label {
+    display: grid;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .request-meta {
+    display: grid;
+    gap: 4px;
+  }
+  .muted {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .dynamic-inputs {
+    display: grid;
+    gap: 10px;
+  }
+  .dynamic-inputs fieldset {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin: 0;
+    padding: 10px;
+    display: grid;
+    gap: 10px;
+  }
+  .dynamic-inputs legend {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    padding: 0 4px;
+  }
+  .dynamic-inputs label {
+    display: grid;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  textarea {
+    min-height: 170px;
+    resize: vertical;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 12.5px;
+  }
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .try-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+  pre {
+    margin: 0;
+    border: 1px solid var(--border);
+    background: #0b1220;
+    color: #e2e8f0;
+    border-radius: 12px;
+    padding: 12px;
+    overflow-x: auto;
+    max-height: 320px;
+    font-size: 12px;
+    line-height: 1.45;
+  }
   .health-actions {
     margin-top: 16px;
     display: flex;

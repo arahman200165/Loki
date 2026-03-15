@@ -24,7 +24,7 @@ export const renderPageLayout = ({ title, body, extraStyles = '' }) => `<!doctyp
       color: var(--text);
     }
     main {
-      max-width: 860px;
+      max-width: 1160px;
       margin: 40px auto;
       padding: 28px;
       background: var(--card);

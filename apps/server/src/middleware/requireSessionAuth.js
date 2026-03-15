@@ -1,4 +1,4 @@
-import { getSession } from '../services/sessionStore.js';
+import { getApiSession } from '../services/sessionStore.js';
 
 const extractBearerToken = (authorizationHeader) => {
   if (typeof authorizationHeader !== 'string') {
@@ -13,7 +13,7 @@ const extractBearerToken = (authorizationHeader) => {
   return token.trim();
 };
 
-export const requireSessionAuth = (req, res, next) => {
+export const requireSessionAuth = async (req, res, next) => {
   const token = extractBearerToken(req.header('authorization'));
 
   if (!token) {
@@ -22,7 +22,7 @@ export const requireSessionAuth = (req, res, next) => {
     });
   }
 
-  const session = getSession(token);
+  const session = await getApiSession(token);
   if (!session) {
     return res.status(401).json({
       message: 'Invalid or expired auth token. Login again.'
@@ -31,7 +31,8 @@ export const requireSessionAuth = (req, res, next) => {
 
   req.auth = {
     token,
-    username: session.username
+    userId: session.userId ?? null,
+    deviceId: session.deviceId ?? null
   };
 
   return next();

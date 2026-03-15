@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, FlatList, Pressable, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { clearAuthSession } from "../../src/auth/flowStore";
 
 const chats = [
   { id: "1", name: "Alice", lastMessage: "Hey, are you free later?" },
@@ -23,11 +23,11 @@ export default function ChatScreen() {
         style: "destructive",
         onPress: async () => {
           try {
-            await AsyncStorage.multiRemove(["authToken", "authUser"]);
-            router.replace("/login");
+            await clearAuthSession();
+            router.replace("/(auth)/welcome");
           } catch (error) {
             console.log("Logout error:", error);
-            router.replace("/login");
+            router.replace("/(auth)/welcome");
           }
         },
       },

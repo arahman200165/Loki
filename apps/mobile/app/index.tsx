@@ -2,12 +2,12 @@ import {
   View,
   Text,
   StyleSheet,
-  Pressable,
   Animated,
   Easing,
 } from "react-native";
 import { router } from "expo-router";
 import { useEffect, useRef } from "react";
+import { getEntryAuthRoute } from "../src/auth/flowStore";
 
 export default function Index() {
   const logoOpacity = useRef(new Animated.Value(0)).current;
@@ -57,7 +57,10 @@ export default function Index() {
     animation.start();
 
     const timeout = setTimeout(() => {
-      router.replace("/login");
+      void (async () => {
+        const targetRoute = await getEntryAuthRoute();
+        router.replace(targetRoute);
+      })();
     }, 2400);
 
     return () => {

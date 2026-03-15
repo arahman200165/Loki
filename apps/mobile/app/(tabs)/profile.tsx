@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, Pressable } from "react-native";
+import { router } from "expo-router";
 
 export default function ProfileScreen() {
   return (
@@ -8,10 +9,18 @@ export default function ProfileScreen() {
       </View>
 
       <Text style={styles.name}>Loki User</Text>
-      <Text style={styles.email}>user@loki.app</Text>
+      <Text style={styles.email}>Privacy-first account</Text>
 
       <Pressable style={styles.button}>
         <Text style={styles.buttonText}>Edit Profile</Text>
+      </Pressable>
+
+      <Pressable style={styles.secondaryButton} onPress={() => router.push("/settings/devices")}>
+        <Text style={styles.secondaryButtonText}>Devices</Text>
+      </Pressable>
+
+      <Pressable style={styles.secondaryButton} onPress={() => router.push("/settings/app-lock")}>
+        <Text style={styles.secondaryButtonText}>App lock</Text>
       </Pressable>
     </View>
   );
@@ -58,6 +67,18 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "#fff",
+    fontWeight: "700",
+    fontSize: 16,
+  },
+  secondaryButton: {
+    backgroundColor: "#1e293b",
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    borderRadius: 14,
+    marginTop: 10,
+  },
+  secondaryButtonText: {
+    color: "#e2e8f0",
     fontWeight: "700",
     fontSize: 16,
   },
