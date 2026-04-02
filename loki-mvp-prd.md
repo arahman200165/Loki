@@ -14,10 +14,10 @@
 
 ## 1. Product Summary
 
-Loki is a privacy-first mobile messenger built around anonymous onboarding, end-to-end encrypted messaging, minimal server-side data retention, and reduced social-graph exposure.
+Loki is a privacy-first mobile messenger built around private onboarding, end-to-end encrypted messaging, minimal server-side data retention, and reduced social-graph exposure.
 
 The MVP is intentionally focused. It should prove that Loki can deliver:
-1. anonymous account creation without phone number or email,
+1. private account creation without phone number or email,
 2. private messaging using a Public-ID request flow with invite fallback,
 3. short-retention encrypted delivery,
 4. high-value local privacy controls such as hidden chats,
@@ -121,8 +121,8 @@ These are not rejected permanently. They are deferred because they materially in
 2. **Minimal data at rest**  
    The server should retain only what is required for short-lived encrypted delivery.
 
-3. **Keys are more important than accounts**  
-   Identity is rooted in device/account cryptographic material, not public profiles.
+3. **Private account credentials stay separate from shareable identity**  
+   Authentication uses private username + password, while Public-ID remains the shareable contact surface.
 
 4. **Privacy settings must be understandable**  
    Stronger privacy should be available through simple, explicit choices.
@@ -138,7 +138,7 @@ These are not rejected permanently. They are deferred because they materially in
 ## 8. MVP Feature Set
 
 ### In MVP
-1. Anonymous account creation
+1. Private account creation (username + password, no phone/email)
 2. Public-ID request and one-time invite fallback connection flow
 3. 1:1 and group end-to-end encrypted chat
 4. Short-retention encrypted delivery
@@ -157,40 +157,42 @@ These are not rejected permanently. They are deferred because they materially in
 3. Decentralized delivery network
 4. Secure private contact discovery
 5. Integrated crypto wallet
-6. Username/password server-auth model as primary identity path
+6. Key-only recovery model without server-side credentials
 
 ---
 
 ## 9. Detailed Feature Requirements and User Flows
 
-## 9.1 Anonymous Account Creation
+## 9.1 Private Account Creation
 
 ### Description
-A user can create a Loki account without phone number, email, or public username. The account is created from generated cryptographic identity material on-device.
+A user can create a Loki account without phone number or email by choosing a private username and password. The private username is never used as a public contact surface.
 
 The user receives:
-- a primary Loki ID,
-- a shareable connection surface,
-- recovery material,
+- a private login credential set (username + password),
+- a user-chosen, shareable Public-ID connection surface,
 - device registration for the first device.
 
 ### Why it is in MVP
-This is the foundation of the product. Without anonymous onboarding, Loki collapses back into a conventional messenger identity model.
+This is the foundation of the product. Without private onboarding that avoids phone/email identity, Loki collapses back into a conventional messenger model.
 
 ### Functional requirements
 - User can create a new account from the mobile app without entering phone number or email.
-- App generates account identity keys locally on device.
-- Backend registers only the minimum needed account/device routing metadata.
-- App displays the user’s Public-ID and rotation controls.
+- User must create a private username and strong password during onboarding.
+- Backend stores only minimum account/auth metadata and account/device routing metadata.
+- User can type and claim their preferred Public-ID during onboarding, subject to safety constraints.
+- Public-ID must be unique, normalized (lowercase, restricted charset), and validated against reserved/blocked terms.
+- App displays the user’s chosen Public-ID and rotation controls.
 - App can generate a one-time invite / connect token tied to this identity.
-- App requires the user to acknowledge and save recovery material before finishing setup.
+- App must keep private username separate from Public-ID and never expose it to other users.
 
 ### UX requirements
 - The onboarding copy must explain:
   - Loki has no public directory or global lookup.
+  - Private username is for login only and cannot be searched by others.
   - People can only request contact through exact Public-ID entry or an invite.
   - Request senders are not told whether a Public-ID exists until recipient acceptance.
-  - Losing recovery material may mean permanent loss of access.
+  - Losing password without configured recovery options may mean account lockout.
 
 ### Success criteria
 - Account can be created in under 2 minutes.
@@ -199,21 +201,24 @@ This is the foundation of the product. Without anonymous onboarding, Loki collap
 ### User flow
 1. User opens Loki and taps **Create Private Account**.
 2. App explains the identity model: no phone, no email, no search.
-3. App generates account keys locally.
-4. App registers the first device with the backend delivery service.
-5. App shows:
+3. User enters private username and password.
+4. User types desired Public-ID; app validates format and availability with anti-abuse protections.
+5. App registers account and first device with the backend delivery service.
+6. App shows:
    - Public-ID,
    - copy/share actions,
    - rotate Public-ID action,
    - generate one-time invite action.
-6. App shows recovery setup.
-7. User confirms recovery material has been stored.
-8. User lands in empty inbox.
+7. App shows optional recovery setup.
+8. User confirms account setup.
+9. User lands in empty inbox.
 
 ### Edge cases
-- App terminated during key generation.
-- Registration succeeds but local save fails.
-- User skips recovery confirmation; app should block completion until acknowledged.
+- App terminated during credential setup.
+- Registration succeeds but secure local session save fails.
+- Chosen private username is already in use.
+- Chosen Public-ID is already in use.
+- Chosen Public-ID contains blocked/reserved/confusable terms.
 
 ---
 
@@ -225,16 +230,39 @@ Loki does not provide a public directory, typeahead search, or global lookup. Fi
 ### Why it is in MVP
 This is one of the clearest product differentiators and directly reduces social-graph discoverability.
 
+### Public-ID policy (MVP)
+- Allowed characters: `a-z`, `0-9`, and single hyphen (`-`) between characters.
+- Normalization: lowercase only; trim leading/trailing spaces before validation.
+- Length: minimum 8 characters, maximum 24 characters.
+- Must start with a letter (`a-z`) and must not end with a hyphen.
+- Disallow consecutive hyphens (`--`).
+- Confusable safety: reject IDs that are visually confusable with existing active IDs after normalization/confusable mapping.
+- Reserved-name categories:
+  - system and staff terms (`admin`, `support`, `security`, `moderator`, `system`, `loki`, `official`)
+  - infrastructure and protocol terms (`api`, `web`, `mail`, `root`, `null`, `undefined`)
+  - emergency and trust terms (`help`, `safety`, `verify`, `verified`, `trust`)
+  - protected brands and high-risk impersonation targets (maintained server-side blocklist)
+- Public-ID change policy:
+  - one free Public-ID change every 7 days
+  - additional changes requested before 7 days require an in-app paid change token
+  - when the 7-day window expires, the next change is free again
+- On successful change, previous Public-ID moves to deprecated state and cannot be reclaimed for 180 days.
+
 ### Functional requirements
 - User can share:
   - exact Public-ID, or
   - one-time invite link / token.
+- Public-ID is user-chosen and can be updated later through rotate/deprecate controls with platform policy constraints.
 - Sender can submit an exact Public-ID in **New Chat** and send a first message/request.
 - Sender must not receive confirmation that a Public-ID is valid or tied to a real account before acceptance.
 - Recipient receives pending request with sender Public-ID and can accept or deny.
 - Recipient must explicitly accept before chat becomes active.
 - Invite tokens can expire and become unusable after first successful acceptance.
 - User can rotate/deprecate current Public-ID, making prior Public-ID values unusable for new inbound requests.
+- Public-ID change UI must clearly show:
+  - next free-change time (countdown to 7-day reset),
+  - paid change option when inside cooldown,
+  - confirmation that old ID becomes deprecated.
 - App must preserve anti-enumeration behavior for invalid/unknown/deprecated Public-ID entries.
 - App must not provide typeahead search, global lookup, or “people you may know.”
 
@@ -270,6 +298,10 @@ This is one of the clearest product differentiators and directly reduces social-
 - Invalid ID format.
 - Unknown Public-ID.
 - Deprecated/rotated Public-ID.
+- Public-ID blocked by reserved-name policy.
+- Public-ID rejected as confusable with an existing active ID.
+- User attempts second change within 7 days without paid token.
+- Paid change purchase fails or is cancelled.
 - Expired invite.
 - Invite already used.
 - Recipient declines request.
@@ -888,7 +920,7 @@ Server-side data model should avoid becoming a rich social graph. Store only wha
 - notification mode distribution
 
 ### Privacy/product trust metrics
-- percentage of users who save recovery material
+- percentage of users who complete optional recovery setup
 - percentage of users enabling disappearing messages
 - percentage of users enabling hidden vault
 - support volume caused by misunderstood privacy expectations
