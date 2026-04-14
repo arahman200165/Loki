@@ -18,7 +18,7 @@ Loki is a privacy-first mobile messenger built around private onboarding, end-to
 
 The MVP is intentionally focused. It should prove that Loki can deliver:
 1. private account creation without phone number or email,
-2. private messaging using a Public-ID request flow with invite fallback,
+2. private messaging using a Public-ID request flow,
 3. short-retention encrypted delivery,
 4. high-value local privacy controls such as hidden chats,
 5. a practical but bounded multi-device model,
@@ -70,7 +70,7 @@ The MVP wins if users can:
 ### Primary goals
 - Anonymous onboarding with no email or phone number.
 - End-to-end encrypted 1:1 and group messaging.
-- Public-ID request based contact establishment with invite fallback.
+- Public-ID request based contact establishment.
 - 1:1 and group audio/video calls.
 - Minimal metadata and limited delivery retention.
 - Strong local privacy controls for sensitive conversations.
@@ -139,13 +139,13 @@ These are not rejected permanently. They are deferred because they materially in
 
 ### In MVP
 1. Private account creation (username + password, no phone/email)
-2. Public-ID request and one-time invite fallback connection flow
+2. Public-ID request connection flow
 3. 1:1 and group end-to-end encrypted chat
 4. Short-retention encrypted delivery
 5. Disappearing messages
 6. Hidden chats vault with second PIN
 7. Basic duress action tied to local cryptographic wipe
-8. Multi-device linking with ephemeral transfer
+8. Multi-device linking and new-device account restore from encrypted cloud data
 9. Device-specific chats
 10. 1:1 and group audio/video calling
 11. Notification privacy modes
@@ -158,6 +158,7 @@ These are not rejected permanently. They are deferred because they materially in
 4. Secure private contact discovery
 5. Integrated crypto wallet
 6. Key-only recovery model without server-side credentials
+7. One-time invite connection workflow
 
 ---
 
@@ -183,14 +184,13 @@ This is the foundation of the product. Without private onboarding that avoids ph
 - User can type and claim their preferred Public-ID during onboarding, subject to safety constraints.
 - Public-ID must be unique, normalized (lowercase, restricted charset), and validated against reserved/blocked terms.
 - App displays the user’s chosen Public-ID and rotation controls.
-- App can generate a one-time invite / connect token tied to this identity.
 - App must keep private username separate from Public-ID and never expose it to other users.
 
 ### UX requirements
 - The onboarding copy must explain:
   - Loki has no public directory or global lookup.
   - Private username is for login only and cannot be searched by others.
-  - People can only request contact through exact Public-ID entry or an invite.
+  - People can only request contact through exact Public-ID entry.
   - Request senders are not told whether a Public-ID exists until recipient acceptance.
   - Losing password without configured recovery options may mean account lockout.
 
@@ -207,8 +207,7 @@ This is the foundation of the product. Without private onboarding that avoids ph
 6. App shows:
    - Public-ID,
    - copy/share actions,
-   - rotate Public-ID action,
-   - generate one-time invite action.
+   - rotate Public-ID action.
 7. App shows optional recovery setup.
 8. User confirms account setup.
 9. User lands in empty inbox.
@@ -222,10 +221,10 @@ This is the foundation of the product. Without private onboarding that avoids ph
 
 ---
 
-## 9.2 Public-ID Request Contact Establishment (with Invite Fallback)
+## 9.2 Public-ID Request Contact Establishment
 
 ### Description
-Loki does not provide a public directory, typeahead search, or global lookup. First contact should happen through an out-of-band exchange where a recipient shares their exact Public-ID (for example, `dancing-panda927`). One-time invites remain available as a fallback path.
+Loki does not provide a public directory, typeahead search, or global lookup. First contact should happen through an out-of-band exchange where a recipient shares their exact Public-ID (for example, `dancing-panda927`).
 
 ### Why it is in MVP
 This is one of the clearest product differentiators and directly reduces social-graph discoverability.
@@ -249,15 +248,12 @@ This is one of the clearest product differentiators and directly reduces social-
 - On successful change, previous Public-ID moves to deprecated state and cannot be reclaimed for 180 days.
 
 ### Functional requirements
-- User can share:
-  - exact Public-ID, or
-  - one-time invite link / token.
+- User can share exact Public-ID.
 - Public-ID is user-chosen and can be updated later through rotate/deprecate controls with platform policy constraints.
 - Sender can submit an exact Public-ID in **New Chat** and send a first message/request.
 - Sender must not receive confirmation that a Public-ID is valid or tied to a real account before acceptance.
 - Recipient receives pending request with sender Public-ID and can accept or deny.
 - Recipient must explicitly accept before chat becomes active.
-- Invite tokens can expire and become unusable after first successful acceptance.
 - User can rotate/deprecate current Public-ID, making prior Public-ID values unusable for new inbound requests.
 - Public-ID change UI must clearly show:
   - next free-change time (countdown to 7-day reset),
@@ -272,7 +268,7 @@ This is one of the clearest product differentiators and directly reduces social-
 - Sender-facing UX should avoid account-existence leaks before acceptance.
 
 ### Success criteria
-- A user can establish first contact in under 60 seconds if they have the other person’s Public-ID or invite.
+- A user can establish first contact in under 60 seconds if they have the other person’s Public-ID.
 
 ### User flow A: connect by Public-ID
 1. Alice obtains Bob’s Public-ID outside Loki.
@@ -284,16 +280,6 @@ This is one of the clearest product differentiators and directly reduces social-
 7. If accepted, a chat thread is created and Alice is now confirmed connected.
 8. Bob may rotate Public-ID after acceptance to stop future contact attempts through the old value.
 
-### User flow B: connect by one-time invite
-1. Bob taps **Create Invite**.
-2. Loki creates a one-time connect token.
-3. Bob sends the invite through another channel.
-4. Alice opens the invite.
-5. Loki validates it and creates a pending request.
-6. Bob accepts, or the invite auto-binds based on flow design.
-7. Chat becomes active.
-8. Invite is marked used or expired.
-
 ### Edge cases
 - Invalid ID format.
 - Unknown Public-ID.
@@ -302,8 +288,6 @@ This is one of the clearest product differentiators and directly reduces social-
 - Public-ID rejected as confusable with an existing active ID.
 - User attempts second change within 7 days without paid token.
 - Paid change purchase fails or is cancelled.
-- Expired invite.
-- Invite already used.
 - Recipient declines request.
 - Sender blocked by recipient.
 
@@ -312,7 +296,7 @@ This is one of the clearest product differentiators and directly reduces social-
 ## 9.3 1:1 and Group End-to-End Encrypted Messaging
 
 ### Description
-Users can exchange end-to-end encrypted 1:1 and group messages. Encryption is between device/account endpoints, while the server only stores encrypted envelopes temporarily for delivery.
+Users can exchange end-to-end encrypted 1:1 and group messages. Encryption is between device/account endpoints, while the server only stores encrypted envelopes temporarily(72hr) for delivery.
 
 ### Why it is in MVP
 This is the core product value.
@@ -326,9 +310,7 @@ This is the core product value.
 - Basic attachments are optional for MVP; text-only is acceptable for first cut.
 
 ### Recommended MVP scope
-- **Required:** text messages in 1:1 and group chats
-- **Optional if schedule allows:** image/file attachment support
-- **Not required:** voice notes, reactions, stickers
+- **Required:** text messages, image/file attachments, voice notes, reactions, and stickers in 1:1 and group chats
 
 ### UX requirements
 - Chat experience must feel normal enough to be usable daily.
@@ -370,7 +352,7 @@ This is central to Loki’s privacy promise and technically feasible with the cu
 - Server stores encrypted envelopes only for temporary store-and-forward.
 - Messages are deleted after:
   - successful fetch/acknowledgment, or
-  - TTL expiry.
+  - TTL(Time to Live) expiry.
 - System supports configurable TTL policies.
 - Default retention should favor privacy over long offline convenience.
 
@@ -404,36 +386,43 @@ This is central to Loki’s privacy promise and technically feasible with the cu
 ## 9.5 Disappearing Messages
 
 ### Description
-Users can set message disappearance timers at the conversation level. This controls local retention on participating devices and server delivery windows where applicable, but does not guarantee deletion from a recipient who has copied or captured content.
+Users can set message disappearance timers at the conversation level (timer starts after the message is read). This controls local retention on participating devices and server delivery windows where applicable, but does not guarantee deletion from a recipient who has copied or captured content.
 
 ### Why it is in MVP
 It is expected in privacy-first messaging and aligns with short-retention philosophy.
 
 ### Functional requirements
 - Per-chat disappearing timer options.
+- In a 1:1 chat, if one participant sets a disappearing timer, it applies to the entire chat for new messages.
+- The other participant may override the timer later; overrides apply only to messages sent after the override.
+- Previously sent disappearing messages must keep the timer policy active when they were sent.
 - Timer applies after message read or after send, depending on product choice.
 - Local message removal is automatic after timer completion.
 - Server should not retain expired disappearing-message content beyond relay necessity.
 - Users must be informed that disappearance is not a guarantee against screenshots, export, or copied content.
+- Chat UI must show a configurable timer control similar to common social messenger patterns (preset options + quick reconfiguration).
+
 
 ### Recommended MVP timers
 - Off
+- 15 seconds
 - 30 seconds
 - 5 minutes
 - 1 hour
-- 1 day
-- 1 week
 
 ### User flow
 1. User opens chat settings.
 2. User sets disappearing messages timer.
-3. System applies timer to newly sent messages.
+3. System applies timer chat-wide for newly sent messages.
 4. Recipient sees timer state in chat UI.
-5. Message is removed locally after rule is met.
+5. Recipient may override timer; override only affects subsequent messages.
+6. Messages are removed locally after their own active timer rule is met.
 
 ### Edge cases
 - Recipient device offline when timer would normally start.
 - Timer changed mid-conversation.
+- Participants rapidly override timer back and forth.
+- User expects old messages to re-time when timer changes (must not happen).
 - Multi-device state sync conflict.
 
 ---
@@ -533,45 +522,51 @@ This provides a credible first step without claiming to erase recipient-side dat
 ## 9.8 Multi-Device Linking
 
 ### Description
-A user can link a second mobile device using an ephemeral transfer flow rather than a permanent cloud history model.
+A user can link a second mobile device and securely pull transferable account data from cloud-hosted storage.
 
 ### Why it is in MVP
-Multi-device is a stated goal and important for serious users, but it must be bounded to fit the privacy model.
+Multi-device is a stated goal and important for serious users. Cloud-assisted transfer keeps onboarding simple while preserving scope boundaries for device-specific content.
 
 ### Functional requirements
-- Primary device can initiate **Link New Device**.
-- Secondary device scans QR or enters one-time pairing code.
-- Primary device encrypts a short-lived bootstrap package for the new device.
-- Backend may hold the encrypted transfer blob briefly.
-- Transfer key is one-time and short-lived.
+- Secondary device downloads Loki and taps **Sign In**.
+- User enters existing private username and password.
 - Each device has its own device identity and mailbox.
-- Message sync is forward-looking after link.
-- Limited recent-history sync may be allowed, but full perpetual cloud history is out of scope.
+- Maximum number of active devices per account is 3.
+- Loki backend stores transferable encrypted account data needed for device linking.
+- User can sign in on a brand-new device with existing account credentials even without access to the original device.
+- Credential-based new-device login must require configured recovery/auth verification controls before restoring transferable data.
+- After link, the secondary device downloads and decrypts transferable data:
+  - non-device-specific chats,
+  - transferable vault contents,
+  - core account state/settings.
+- Device-specific chats are never transferred to linked devices.
+- Message sync is forward-looking after link for all transferable conversations.
 
 ### UX requirements
 - Linking should feel simple and explicit.
-- Product must not imply that Loki stores complete cloud history forever.
+- Product must clearly explain what is transferred vs not transferred.
+- Product must clearly state that device-specific chats stay on their original device.
+- Login screen must offer a clear **Sign in to existing account on this device** path.
 
 ### Success criteria
-- Second device can join account successfully and receive new messages.
+- Second device can join account successfully, restore transferable data, and receive new messages.
 - Device list is visible and manageable.
 
 ### User flow
-1. User on Device A opens **Linked Devices**.
-2. User taps **Add Device**.
-3. Device A shows QR code / pairing token.
-4. User opens Loki on Device B and chooses **Link Existing Account**.
-5. Device B scans token.
-6. Device A encrypts bootstrap archive/session package.
-7. Package is transferred via short-lived channel.
-8. Device B decrypts and registers its own mailbox.
-9. Device B begins receiving messages.
+1. User installs Loki on a new device and taps **Sign In**.
+2. User enters existing private username and password.
+3. App requires configured recovery/auth verification controls.
+4. Backend authorizes new device registration.
+5. New device downloads and decrypts transferable cloud-hosted data.
+6. Device-specific chats remain unavailable by design.
 
 ### Edge cases
-- QR expires.
-- Transfer interrupted midway.
-- Device B added but cannot decrypt archive.
+- Cloud transfer interrupted midway.
+- Device B added but cannot decrypt cloud package.
+- Some content excluded because it is device-specific.
 - User wants to revoke a linked device.
+- User has valid credentials but no configured recovery/auth verification option for new-device login.
+- User tries to add a 4th device; app blocks linking until one device is removed.
 
 ---
 
@@ -581,7 +576,7 @@ Multi-device is a stated goal and important for serious users, but it must be bo
 A user can create chats whose root keys remain only on the originating device and are not replicated to linked devices.
 
 ### Why it is in MVP
-This is a strong privacy differentiator and pairs naturally with the research direction.
+This is a strong privacy differentiator.
 
 ### Functional requirements
 - When starting a new chat, user may choose:
@@ -610,26 +605,24 @@ This is a strong privacy differentiator and pairs naturally with the research di
 6. Linked device never receives the thread.
 
 ### Edge cases
-- User later wants to convert chat to normal multi-device chat.
+- User later wants to convert chat to normal multi-device chat. //CANT DO THIS. ONCE A CHAT IS DEVICE-SPECIFIC, IT CANNOT BE CONVERTED TO NORMAL CHAT. USER MUST CREATE A NEW CHAT AND MANUALLY COPY CONTENT IF THEY WANT TO SWITCH.
 - Device lost.
-- Recipient is multi-device while sender chat is device-specific.
+- Recipient is multi-device while sender chat is device-specific. //CANT DO THIS. EITHER MULTI DEVICE OR DEVICE-SPECIFIC, NOT BOTH. PERSON WHO CREATED THE CHAT DECIDES THIS SETTING AT CHAT CREATION TIME.
 
 ---
 
-## 9.10 Notification Privacy Modes
+## 9.10 Notification Privacy Modes // HERE WE WILL ONLY HAVE SERVER PUSH NOTIFS TO DEVICE. LATER IMPROVEMENT WILL BE DEVICE POLLING SERVER FOR INFO. ALSO WE WILL NTO HAVE CONTENT PREVIEWS(IT WILL ONLY SAY "YOU HAVE A NOTIFICATIOIN IN LOKI". NOT WHAT THE ACTUAL TEXT IS)
 
 ### Description
-Loki offers privacy modes for notifications so users can trade convenience for stronger anonymity.
+Loki offers privacy modes for notifications.
 
 ### Why it is in MVP
 The research identifies push infrastructure as a metadata risk. MVP should surface that tradeoff instead of hiding it.
 
 ### Functional requirements
 - User can choose notification mode:
-  1. Standard push
-  2. Privacy push (wake-up only, no content preview)
-  3. High anonymity mode (reduced or no push; polling/manual refresh)
-- Hidden vault chats should suppress content previews regardless of notification mode.
+  1. Privacy push (wake-up only)
+  2. High anonymity mode (reduced or no push; polling/manual refresh) //PUSH TO BACKLOG. WILL NOT BE IN MVP
 - App explains delivery-delay tradeoff in high anonymity mode.
 
 ### UX requirements
@@ -691,7 +684,7 @@ Trust depends on honest communication.
 ## 9.12 Group Chats
 
 ### Description
-Users can create and participate in small group chats with end-to-end encrypted messaging and explicit membership controls.
+Users can create and participate in small(3-25 people) group chats with end-to-end encrypted messaging and explicit membership controls.
 
 ### Why it is in MVP
 Group messaging is a core daily-use expectation and is now part of MVP scope.
@@ -702,7 +695,6 @@ Group messaging is a core daily-use expectation and is now part of MVP scope.
 - Admin can add/remove participants.
 - Participants can leave group at any time.
 - Group membership changes generate visible system events.
-- Group keys rotate on membership changes.
 - Group metadata exposure should remain minimal and consistent with Loki privacy model.
 
 ### UX requirements
@@ -720,12 +712,11 @@ Group messaging is a core daily-use expectation and is now part of MVP scope.
 3. User enters group name and creates group.
 4. App establishes group session and keys.
 5. Participants receive join event and can send messages.
-6. Admin later removes a member; system rotates keys and records event.
+6. Admin later removes a member.
 
 ### Edge cases
 - Invitee declines group add.
 - Admin leaves group.
-- Group key rotation interrupted.
 - Removed member attempts to send message with stale session.
 
 ---
@@ -801,7 +792,6 @@ Calling is a required communication surface for MVP and complements encrypted me
 ### Backend surfaces
 - Account registration
 - Device registration
-- Invite issuance / validation
 - Public-ID request submit / accept / deny
 - Public-ID rotate
 - Message send / fetch / ack
@@ -821,7 +811,6 @@ Calling is a required communication surface for MVP and complements encrypted me
 - encrypted local storage
 - account bootstrap
 - Public-ID request flow and rotation handling
-- invite creation and fallback handling
 - 1:1 and group chat UI
 - call UI and session state handling
 - hidden vault UX
@@ -836,7 +825,6 @@ Calling is a required communication surface for MVP and complements encrypted me
 - per-device mailbox / delivery queue
 - encrypted envelope relay
 - TTL / retention enforcement
-- invite fallback lifecycle
 - group management endpoints
 - call signaling/session endpoints
 - device linking bootstrap service
@@ -847,7 +835,6 @@ Calling is a required communication surface for MVP and complements encrypted me
 - typed API contracts
 - Public-ID request/rotation contracts
 - message envelope schemas
-- invite/token schemas
 - group membership contracts
 - call session contracts
 - device metadata contracts
@@ -862,7 +849,6 @@ Calling is a required communication surface for MVP and complements encrypted me
 - Account
 - Device
 - PublicContactId
-- OneTimeInvite
 - ContactRequest
 - Conversation
 - ConversationParticipant
@@ -932,7 +918,7 @@ Server-side data model should avoid becoming a rich social graph. Store only wha
 Loki MVP is ready when:
 
 1. A new user can create an anonymous account without phone or email.
-2. Two users can establish contact via exact Public-ID request or one-time invite fallback.
+2. Two users can establish contact via exact Public-ID request.
 3. Sender receives no account-existence confirmation before recipient acceptance.
 4. Public-ID requests support accept/deny outcomes and anti-enumeration behavior.
 5. Public-ID rotation invalidates old Public-ID values for new inbound requests.
@@ -943,7 +929,7 @@ Loki MVP is ready when:
 10. Disappearing messages work for normal chat flows.
 11. Hidden vault works with separate PIN and separate local encryption boundary.
 12. Duress action destroys hidden-vault keys reliably.
-13. A second device can be linked via ephemeral transfer.
+13. A second device can be added and restored from encrypted cloud-hosted transferable data.
 14. Device-specific chats do not sync to linked devices.
 15. Notification privacy modes are available and understandable.
 16. Privacy limitations are explained clearly in-product.
@@ -961,7 +947,7 @@ Loki MVP is ready when:
 - onion-routed transport option
 - private relay/proxy mode
 - stronger sender-metadata protections
-- advanced abuse/spam resistance for invite flows
+- advanced abuse/spam resistance for connection-request flows
 
 ### Phase 4
 - decentralized delivery experimentation
@@ -977,7 +963,7 @@ Loki MVP is ready when:
 
 ### We will do in MVP
 - anonymous key-based onboarding
-- Public-ID request model with invite fallback
+- Public-ID request model
 - 1:1 and group encrypted messaging
 - short-retention delivery
 - disappearing messages
