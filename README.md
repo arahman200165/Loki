@@ -178,14 +178,14 @@ The repo now includes a static landing page in `docs/` for GitHub Pages.
 - Site entrypoint: `docs/index.html`
 - Styles: `docs/styles.css`
 - Motion: `docs/main.js`
-- Custom domain: `docs/CNAME` set to `loki-chat.com`
+- Custom domain: `docs/CNAME` set to `www.loki-chat.com`
 - Deployment workflow: `.github/workflows/deploy-pages.yml`
 
 To publish it:
 
 1. Push the repo to `main`.
 2. In GitHub, enable Pages to use GitHub Actions as the source.
-3. In your DNS provider, point `loki-chat.com` and `www.loki-chat.com` to GitHub Pages records.
+3. In your DNS provider, point `loki-chat.com` and `www.loki-chat.com` to GitHub Pages records, with `www` as the canonical host.
 4. Confirm the custom domain in the repository Pages settings once GitHub detects the `CNAME`.
 
 ## Troubleshooting
