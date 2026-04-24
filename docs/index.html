@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Loki is a privacy-first messenger built for people who do not want to be discoverable."
+    />
+    <title>Loki | Private By Default</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      document.documentElement.classList.add("js-enabled");
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="brand" href="#top" aria-label="Loki home">
+          <span class="brand-mark">L</span>
+          <span class="brand-copy">
+            <strong>Loki</strong>
+            <span>Private messenger</span>
+          </span>
+        </a>
+        <span class="domain-pill">loki-chat.com</span>
+      </header>
+
+      <main id="top">
+        <section class="hero" aria-labelledby="hero-title">
+          <div class="hero-noise" aria-hidden="true"></div>
+          <div class="hero-grid" aria-hidden="true"></div>
+          <div class="hero-inner">
+            <div class="hero-copy">
+              <p class="eyebrow reveal">Privacy-first mobile messaging</p>
+              <p class="brand-line reveal">LOKI</p>
+              <h1 id="hero-title" class="reveal">
+                A private messenger for people who do not want to be discovered.
+              </h1>
+              <p class="hero-body reveal">
+                No phone number. No public directory. Exact-match Public-ID
+                requests, encrypted conversations, and short-lived delivery
+                designed to keep exposure low from the first tap.
+              </p>
+              <div class="hero-actions reveal">
+                <a class="button button-primary" href="#why-loki">See Why Loki</a>
+                <a class="button button-secondary" href="#launch">Launch Ready</a>
+              </div>
+              <ul class="hero-points reveal" aria-label="Key qualities">
+                <li>No phone or email identity</li>
+                <li>Acceptance-gated contact requests</li>
+                <li>Built for fast mobile use</li>
+              </ul>
+            </div>
+
+            <div class="hero-visual reveal" aria-hidden="true">
+              <div class="signal-core"></div>
+              <div class="signal-ring signal-ring-one"></div>
+              <div class="signal-ring signal-ring-two"></div>
+              <div class="signal-ring signal-ring-three"></div>
+              <div class="signal-beam"></div>
+              <div class="signal-label signal-label-a">private-id</div>
+              <div class="signal-label signal-label-b">e2e delivery</div>
+              <div class="signal-label signal-label-c">hidden vault</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="support section reveal-block" id="why-loki">
+          <div class="section-heading">
+            <p class="eyebrow">Why Loki</p>
+            <h2>Private by design, not buried in settings.</h2>
+          </div>
+          <div class="support-list">
+            <article>
+              <h3>Deliberate onboarding</h3>
+              <p>
+                Create an account without tying your identity to a phone number
+                or email address.
+              </p>
+            </article>
+            <article>
+              <h3>Intentional contact flow</h3>
+              <p>
+                People connect through exact Public-IDs and recipient approval,
+                not global search or typeahead.
+              </p>
+            </article>
+            <article>
+              <h3>Minimal retention</h3>
+              <p>
+                Encrypted delivery stays short-lived, with disappearing
+                messages and stronger local privacy controls on the device.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section class="detail section reveal-block" id="privacy-model">
+          <div class="detail-copy">
+            <p class="eyebrow">Built for the first release</p>
+            <h2>Focused enough to ship. Clear enough to trust.</h2>
+            <p>
+              Loki is not trying to be a bloated everything-app. The first
+              version centers on private onboarding, encrypted messaging, group
+              chat, calling, and device-level protection that feels credible in
+              daily use.
+            </p>
+          </div>
+          <div class="detail-lines" aria-label="Product pillars">
+            <div>
+              <span>01</span>
+              <p>Anonymous account creation with a shareable Public-ID.</p>
+            </div>
+            <div>
+              <span>02</span>
+              <p>Encrypted 1:1 and group conversations with short retention.</p>
+            </div>
+            <div>
+              <span>03</span>
+              <p>Hidden vault controls for sensitive chats on the device.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="launch section reveal-block" id="launch">
+          <p class="eyebrow">Domain configured</p>
+          <h2>The site is prepared for <span>loki-chat.com</span>.</h2>
+          <p>
+            Publish this docs site with GitHub Pages, point your DNS at
+            GitHub Pages, and the custom domain can serve this landing page
+            directly.
+          </p>
+          <a class="button button-primary" href="#top">Back To Top</a>
+        </section>
+      </main>
+    </div>
+
+    <script src="./main.js"></script>
+  </body>
+</html>
