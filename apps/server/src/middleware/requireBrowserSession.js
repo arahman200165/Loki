@@ -23,22 +23,26 @@ const parseCookies = (cookieHeader) => {
   }, {});
 };
 
-export const getBrowserSessionFromRequest = (req) => {
+export const getBrowserSessionFromRequest = async (req) => {
   const cookies = parseCookies(req.header('cookie'));
   const token = cookies[SESSION_COOKIE_NAME];
   if (!token) {
     return null;
   }
 
-  return getSession(token);
+  return await getSession(token);
 };
 
-export const requireBrowserSession = (req, res, next) => {
-  const session = getBrowserSessionFromRequest(req);
-  if (!session) {
-    return res.redirect('/login');
-  }
+export const requireBrowserSession = async (req, res, next) => {
+  try {
+    const session = await getBrowserSessionFromRequest(req);
+    if (!session) {
+      return res.redirect('/login');
+    }
 
-  req.webSession = session;
-  return next();
+    req.webSession = session;
+    return next();
+  } catch (error) {
+    return next(error);
+  }
 };

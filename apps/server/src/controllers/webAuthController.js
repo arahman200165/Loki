@@ -17,8 +17,8 @@ const safeStringEquals = (value, expected) => {
   return crypto.timingSafeEqual(valueBuffer, expectedBuffer);
 };
 
-export const renderLoginPage = (req, res) => {
-  const existingSession = getBrowserSessionFromRequest(req);
+export const renderLoginPage = async (req, res) => {
+  const existingSession = await getBrowserSessionFromRequest(req);
   if (existingSession) {
     return res.redirect('/');
   }
@@ -27,7 +27,7 @@ export const renderLoginPage = (req, res) => {
   return res.status(200).type('html').send(renderLoginPageHtml({ hasError }));
 };
 
-export const handleLoginPage = (req, res) => {
+export const handleLoginPage = async (req, res) => {
   const { username, password } = req.body ?? {};
   const normalizedUsername = typeof username === 'string' ? username.trim() : '';
   const normalizedPassword = typeof password === 'string' ? password : '';
@@ -39,7 +39,7 @@ export const handleLoginPage = (req, res) => {
     return res.redirect('/login?error=1');
   }
 
-  const session = createSession({ username: normalizedUsername });
+  const session = await createSession({ username: normalizedUsername });
 
   res.cookie(SESSION_COOKIE_NAME, session.token, {
     httpOnly: true,
@@ -60,10 +60,10 @@ export const renderProtectedHomePage = (req, res) =>
     })
   );
 
-export const handleLogoutPage = (req, res) => {
+export const handleLogoutPage = async (req, res) => {
   const token = req.webSession?.token;
   if (token) {
-    deleteSession(token);
+    await deleteSession(token);
   }
 
   res.clearCookie(SESSION_COOKIE_NAME, { path: '/' });

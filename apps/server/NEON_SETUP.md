@@ -26,7 +26,7 @@ From Neon dashboard, copy the Postgres connection string for the correct branch.
 Recommended format:
 
 ```text
-postgresql://<user>:<password>@<host>/<database>?sslmode=require
+postgresql://<user>:<password>@<host>/<database>?sslmode=verify-full&channel_binding=require
 ```
 
 ## 4) Configure this backend
@@ -34,7 +34,7 @@ postgresql://<user>:<password>@<host>/<database>?sslmode=require
 In `apps/server/.env`:
 
 ```env
-DATABASE_URL=postgresql://<user>:<password>@<host>/<database>?sslmode=require
+DATABASE_URL=postgresql://<user>:<password>@<host>/<database>?sslmode=verify-full&channel_binding=require
 DATABASE_SSL=true
 DATABASE_SSL_REJECT_UNAUTHORIZED=true
 DATABASE_POOL_MAX=10
@@ -42,6 +42,7 @@ DATABASE_POOL_MAX=10
 
 Notes:
 - `DATABASE_URL` is required for DB connectivity checks.
+- `sslmode=verify-full` is recommended to keep strict TLS verification behavior with future `pg` versions.
 - `DATABASE_SSL=true` is recommended for Neon.
 - `DATABASE_SSL_REJECT_UNAUTHORIZED=true` is recommended so TLS validates the server certificate.
 - `DATABASE_POOL_MAX` can stay `10` for local/dev starts.
