@@ -8,8 +8,8 @@ Loki is an early MVP scaffold, not the finished messenger described in the roadm
 
 - `apps/server/` is an Express + ESM backend with middleware, env config, health/auth routes, PostgreSQL pool config, in-memory bearer sessions, and a browser debug login.
 - `apps/mobile/` is an Expo React Native app with Expo Router, splash/login flow, tab shell, AsyncStorage auth persistence, and a placeholder new-chat screen.
-- `packages/shared/` exists but is minimal; future shared API contracts, domain types, constants, and Public-ID validators should live there.
-- `docs/` is the static GitHub Pages landing site.
+- `packages/shared/` has TypeScript types for all domain entities and API wire shapes, retention constants, and a `validatePublicId` / `normalizePublicId` utility. All cross-app contracts go here.
+- `docs/` is the static GitHub Pages landing site. `docs/qa/` holds per-sprint manual QA checklists.
 - There is no formal test infrastructure yet. Do not invent test commands.
 
 ## Source-Of-Truth Order
@@ -32,6 +32,7 @@ When the implementation differs from roadmap docs, state the gap plainly instead
 4. Preserve Loki privacy constraints before convenience, UI polish, or speed.
 5. Put cross-app contracts, shared constants, and Public-ID validation in `packages/shared` instead of duplicating them.
 6. Verify with commands that exist in `package.json` or workspace package scripts. If a command does not exist, say so.
+7. After completing a sprint (or being asked to QA one), produce a manual QA checklist and save it to `docs/qa/sprint-<N>-qa.md`. Use the `manual-qa` skill. Do not skip this step — there is no automated test suite, so these checklists are the only structured verification record.
 
 ## Existing Commands
 
@@ -49,6 +50,7 @@ From `apps/server`:
 npm run dev
 npm run start
 npm run check
+npm run migrate   # run DB migrations in apps/server/db/migrations/ against DATABASE_URL
 ```
 
 From `apps/mobile`:
