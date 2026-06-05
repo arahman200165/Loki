@@ -40,6 +40,13 @@ const homePageStyles = `
     gap: 12px;
     flex-wrap: wrap;
   }
+  .docs-link {
+    margin-top: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+  }
   .health-hint {
     font-size: 13px;
     color: var(--muted);
@@ -56,6 +63,10 @@ export const renderHomePageHtml = ({ username, apiPrefix }) =>
         <h1>Loki Backend</h1>
         <p>Authenticated as <strong>${escapeHtml(username)}</strong>.</p>
         <span class="chip">API Prefix: <code>${escapeHtml(apiPrefix)}</code></span>
+        <p class="docs-link">
+          <a href="${escapeHtml(apiPrefix)}/docs" target="_blank" rel="noopener noreferrer">Open Swagger UI</a>
+          <span class="health-hint">Use it for Sprint 1 and Sprint 2 API QA.</span>
+        </p>
         ${renderApiTable({ apiPrefix })}
         <form class="health-actions" method="get" action="/web/health-check" target="_blank" rel="noopener noreferrer">
           <button type="submit">Run Health Check</button>

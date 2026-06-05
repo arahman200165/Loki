@@ -104,3 +104,8 @@ export const logout = async (req, res) => {
     message: wasDeleted ? 'Logout successful.' : 'Session already cleared.'
   });
 };
+
+export const getSessionContext = async (req, res) =>
+  res.status(200).json({
+    session: req.auth
+  });
