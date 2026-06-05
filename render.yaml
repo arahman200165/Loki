@@ -1,0 +1,62 @@
+envVarGroups:
+  - name: loki-api-shared
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_PREFIX
+        value: /api/v1
+      - key: API_KEY_HEADER
+        value: x-api-key
+      - key: DATABASE_SSL
+        value: "true"
+      - key: DATABASE_SSL_REJECT_UNAUTHORIZED
+        value: "true"
+      - key: DATABASE_POOL_MAX
+        value: "10"
+
+services:
+  - type: web
+    name: loki-api-staging
+    runtime: node
+    branch: main
+    rootDir: apps/server
+    plan: starter
+    buildCommand: npm --prefix ../.. ci
+    startCommand: npm --prefix ../.. run server:start
+    healthCheckPath: /api/v1/health
+    autoDeployTrigger: off
+    envVars:
+      - fromGroup: loki-api-shared
+      - key: CLIENT_ORIGIN
+        sync: false
+      - key: API_KEY
+        sync: false
+      - key: AUTH_USERNAME
+        sync: false
+      - key: AUTH_PASSWORD
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+
+  - type: web
+    name: loki-api-production
+    runtime: node
+    branch: main
+    rootDir: apps/server
+    plan: starter
+    buildCommand: npm --prefix ../.. ci
+    startCommand: npm --prefix ../.. run server:start
+    healthCheckPath: /api/v1/health
+    autoDeployTrigger: off
+    envVars:
+      - fromGroup: loki-api-shared
+      - key: CLIENT_ORIGIN
+        sync: false
+      - key: API_KEY
+        sync: false
+      - key: AUTH_USERNAME
+        sync: false
+      - key: AUTH_PASSWORD
+        sync: false
+      - key: DATABASE_URL
+        sync: false

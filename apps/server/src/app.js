@@ -12,6 +12,7 @@ import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { requireApiKey } from './middleware/requireApiKey.js';
 import { requireBrowserSession } from './middleware/requireBrowserSession.js';
+import { asyncHandler } from './utils/asyncHandler.js';
 import {
   renderLoginPage,
   handleLoginPage,
@@ -32,11 +33,15 @@ app.use(morgan(env.nodeEnv === 'production' ? 'combined' : 'dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get('/login', renderLoginPage);
-app.post('/login', handleLoginPage);
-app.get('/', requireBrowserSession, renderProtectedHomePage);
-app.post('/logout', requireBrowserSession, handleLogoutPage);
-app.get('/web/health-check', requireBrowserSession, handleWebHealthCheck);
+app.get('/login', asyncHandler(renderLoginPage));
+app.post('/login', asyncHandler(handleLoginPage));
+app.get('/', asyncHandler(requireBrowserSession), renderProtectedHomePage);
+app.post('/logout', asyncHandler(requireBrowserSession), asyncHandler(handleLogoutPage));
+app.get(
+  '/web/health-check',
+  asyncHandler(requireBrowserSession),
+  asyncHandler(handleWebHealthCheck)
+);
 app.get(`${env.apiPrefix}/docs.json`, (req, res) => res.status(200).json(openApiDocument));
 app.use(
   `${env.apiPrefix}/docs`,
