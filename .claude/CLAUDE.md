@@ -9,7 +9,8 @@ Loki is an early MVP scaffold, not the finished messenger described in the roadm
 - `apps/server/` is an Express + ESM backend with middleware, env config, health/auth routes, PostgreSQL pool config, in-memory bearer sessions, and a browser debug login.
 - `apps/mobile/` is an Expo React Native app with Expo Router, splash/login flow, tab shell, AsyncStorage auth persistence, and a placeholder new-chat screen.
 - `packages/shared/` has TypeScript types for all domain entities and API wire shapes, retention constants, and a `validatePublicId` / `normalizePublicId` utility. All cross-app contracts go here.
-- `docs/` is the static GitHub Pages landing site. `docs/qa/` holds per-sprint manual QA checklists.
+- `docs/` is the static GitHub Pages landing site. 
+- `qa/` holds per-sprint manual QA checklists.
 - There is no formal test infrastructure yet. Do not invent test commands.
 
 ## Source-Of-Truth Order

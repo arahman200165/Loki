@@ -10,62 +10,35 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const API_BASE_URL = "https://loki-0pfz.onrender.com/api";
-const API_KEY = process.env.EXPO_PUBLIC_API_KEY ?? "dev-mobile-api-key";
-const API_KEY_HEADER_NAME = "x-api-key";
-
-const getApiHeaders = (includeJson = false, token?: string) => {
-  const headers: Record<string, string> = {
-    [API_KEY_HEADER_NAME]: API_KEY,
-  };
-
-  if (includeJson) {
-    headers["Content-Type"] = "application/json";
-  }
-
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-
-  return headers;
-};
+import PasswordInput from "../components/PasswordInput";
+import { apiPost, API_BASE_URL, API_VERSION, buildHeaders } from "../lib/apiClient";
+import type { LoginResponse } from "@loki/shared";
 
 export default function LoginScreen() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [authToken, setAuthToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [pingLoading, setPingLoading] = useState(false);
 
   const handlePingServer = async () => {
     setPingLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/v1/health`, {
-        headers: getApiHeaders(false, authToken ?? undefined),
+      const response = await fetch(`${API_BASE_URL}/${API_VERSION}/health`, {
+        headers: buildHeaders(),
       });
       const data = await response.json();
       if (response.ok) {
-        Alert.alert(
-          "Server Ping Success",
-          data.message || "Server is healthy.",
-        );
+        Alert.alert("Server Ping Success", data.message || "Server is healthy.");
       } else {
-        Alert.alert(
-          "Server Ping Failed",
-          data.message || "Server responded with error.",
-        );
+        Alert.alert("Server Ping Failed", data.message || "Server responded with error.");
       }
-    } catch (error) {
-      console.log(error);
-      Alert.alert(
-        "Ping Error",
-        "Could not reach server. Check your backend URL.",
-      );
+    } catch {
+      Alert.alert("Ping Error", "Could not reach server. Check your backend URL.");
     } finally {
       setPingLoading(false);
     }
   };
+
   const handleLogin = async () => {
     if (!username || !password) {
       Alert.alert("Missing fields", "Please enter your username and password.");
@@ -74,39 +47,24 @@ export default function LoginScreen() {
 
     try {
       setLoading(true);
-
-      const response = await fetch(`${API_BASE_URL}/v1/auth/login`, {
-        method: "POST",
-        headers: getApiHeaders(true),
-        body: JSON.stringify({
-          username,
-          password,
-        }),
+      const { ok, data } = await apiPost<LoginResponse>("/auth/login", {
+        username,
+        password,
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        Alert.alert("Login failed", data.message || "Something went wrong.");
+      if (!ok) {
+        Alert.alert("Login failed", (data as { message?: string }).message ?? "Something went wrong.");
         return;
       }
 
-      if (data?.token) {
-        await AsyncStorage.multiSet([
-          ["authToken", data.token],
-          ["authUser", JSON.stringify(data.user ?? { username })],
-        ]);
-        setAuthToken(data.token);
-      }
+      await AsyncStorage.multiSet([
+        ["authToken", data.token],
+        ["authUser", JSON.stringify(data.user)],
+      ]);
 
-      Alert.alert("Success", data.message || "Logged in successfully.");
       router.replace("/(tabs)/chat");
-    } catch (error) {
-      console.log(error);
-      Alert.alert(
-        "Connection error",
-        "Could not connect to the server. Check your backend URL.",
-      );
+    } catch {
+      Alert.alert("Connection error", "Could not connect to the server.");
     } finally {
       setLoading(false);
     }
@@ -126,14 +84,7 @@ export default function LoginScreen() {
         onChangeText={setUsername}
       />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        placeholderTextColor="#94a3b8"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+      <PasswordInput value={password} onChangeText={setPassword} />
 
       <Pressable
         style={[styles.button, loading && styles.buttonDisabled]}
@@ -159,8 +110,8 @@ export default function LoginScreen() {
         )}
       </Pressable>
 
-      <Pressable onPress={() => router.push("/")}>
-        <Text style={styles.linkText}>Back to Home</Text>
+      <Pressable onPress={() => router.push("/onboarding")}>
+        <Text style={styles.linkText}>New here? Create an account</Text>
       </Pressable>
     </View>
   );

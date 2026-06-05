@@ -12,9 +12,24 @@ export const PUBLIC_ID_MAX_LENGTH = 24;
 const PUBLIC_ID_PATTERN = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
 
 export const RESERVED_PUBLIC_IDS: ReadonlySet<string> = new Set([
-  'admin', 'support', 'security', 'moderator', 'system', 'loki',
-  'official', 'api', 'web', 'mail', 'root', 'null', 'undefined',
-  'help', 'safety', 'verify', 'verified', 'trust',
+  "admin",
+  "support",
+  "security",
+  "moderator",
+  "system",
+  "loki",
+  "official",
+  "api",
+  "web",
+  "mail",
+  "root",
+  "null",
+  "undefined",
+  "help",
+  "safety",
+  "verify",
+  "verified",
+  "trust",
 ]);
 
 // Common Unicode homoglyphs that visually resemble ASCII a–z, 0–9.
@@ -22,49 +37,52 @@ export const RESERVED_PUBLIC_IDS: ReadonlySet<string> = new Set([
 // so callers can log or audit confusable attempts separately.
 const CONFUSABLE_CHARS: ReadonlySet<string> = new Set([
   // Cyrillic
-  'а', // а → a
-  'е', // е → e
-  'о', // о → o
-  'р', // р → r
-  'с', // с → c
-  'х', // х → x
-  'і', // і → i
-  'й', // й → short-i
+  "а", // а → a
+  "е", // е → e
+  "о", // о → o
+  "р", // р → r
+  "с", // с → c
+  "х", // х → x
+  "і", // і → i
+  "й", // й → short-i
   // Greek
-  'ο', // ο → o
-  'α', // α → a
-  'ε', // ε → e
-  'ν', // ν → v
+  "ο", // ο → o
+  "α", // α → a
+  "ε", // ε → e
+  "ν", // ν → v
   // Latin extended
-  'ó', // ó
-  'é', // é
-  'à', // à
-  'ä', // ä
-  'ü', // ü
-  'ö', // ö
+  "ó", // ó
+  "é", // é
+  "à", // à
+  "ä", // ä
+  "ü", // ü
+  "ö", // ö
 ]);
 
 export type PublicIdValidationError =
-  | 'too_short'
-  | 'too_long'
-  | 'invalid_format'
-  | 'reserved'
-  | 'confusable';
+  | "too_short"
+  | "too_long"
+  | "invalid_format"
+  | "reserved"
+  | "confusable";
 
 export type PublicIdValidationResult =
   | { valid: true }
   | { valid: false; reason: PublicIdValidationError };
 
 export function validatePublicId(id: string): PublicIdValidationResult {
-  if (id.length < PUBLIC_ID_MIN_LENGTH) return { valid: false, reason: 'too_short' };
-  if (id.length > PUBLIC_ID_MAX_LENGTH) return { valid: false, reason: 'too_long' };
+  if (RESERVED_PUBLIC_IDS.has(id)) return { valid: false, reason: "reserved" };
+  if (id.length < PUBLIC_ID_MIN_LENGTH)
+    return { valid: false, reason: "too_short" };
+  if (id.length > PUBLIC_ID_MAX_LENGTH)
+    return { valid: false, reason: "too_long" };
 
   // Check for known confusable Unicode chars before the format regex
   // so we can return a distinct reason rather than generic invalid_format
-  if (hasConfusableChars(id)) return { valid: false, reason: 'confusable' };
+  if (hasConfusableChars(id)) return { valid: false, reason: "confusable" };
 
-  if (!PUBLIC_ID_PATTERN.test(id)) return { valid: false, reason: 'invalid_format' };
-  if (RESERVED_PUBLIC_IDS.has(id)) return { valid: false, reason: 'reserved' };
+  if (!PUBLIC_ID_PATTERN.test(id))
+    return { valid: false, reason: "invalid_format" };
 
   return { valid: true };
 }

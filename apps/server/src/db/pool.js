@@ -53,6 +53,8 @@ export const checkDatabaseConnection = async () => {
   };
 };
 
+export const getClient = () => getPool().connect();
+
 export const closePool = async () => {
   if (!pool) {
     return;

@@ -54,23 +54,30 @@ Key files:
 - `app.js` — Middleware stack and route mounting
 - `server.js` — HTTP server init and graceful shutdown
 - `config/env.js` — All env vars with defaults
-- `services/sessionStore.js` — In-memory token store (`crypto.randomBytes(48)`)
+- `services/sessionStore.js` — PostgreSQL-backed token store (`crypto.randomBytes(48)`, joins accounts/devices)
+- `services/passwordService.js` — Argon2id hashing (`hashPassword`, `verifyPassword`, `verifyDummy` for timing safety)
 - `services/healthCheckService.js` — DB connectivity probe
-- `db/pool.js` — PostgreSQL connection pool (SSL-configurable)
-- `controllers/authController.js` — Mobile login/logout
-- `controllers/webAuthController.js` — Browser login/logout + protected home page
+- `db/pool.js` — PostgreSQL connection pool (SSL-configurable); exports `getClient()` for transactions
+- `db/models/accountModel.js` — Account DB queries (create, findByUsername, exists)
+- `db/models/deviceModel.js` — Device DB queries (createForAccount, findLatestActive)
+- `db/models/sessionModel.js` — Session DB queries (create, findWithAccountAndDevice, delete)
+- `controllers/authController.js` — Mobile register/login/logout (DB-backed, Argon2id)
+- `controllers/webAuthController.js` — Browser login/logout; validates env credentials then issues a real DB session via a reserved synthetic admin account
 
-Authentication uses hardcoded credentials from env vars (`AUTH_USERNAME`, `AUTH_PASSWORD`) with timing-safe comparison. Sessions are in-memory only (cleared on restart, no expiration).
+API auth is DB-backed: `/api/v1/auth/register` creates account+device+session in a transaction; `/api/v1/auth/login` verifies Argon2id hash and reuses the latest active device. Browser admin login remains env-credential-gated but mints a normal DB session for the reserved admin account. Sessions survive server restarts (stored in PostgreSQL).
 
 ### Mobile (`apps/mobile/app/`)
 
 Uses Expo Router (file-based routing, like Next.js):
 
-- `_layout.tsx` — Root stack navigator
-- `index.tsx` — Animated splash, auto-redirects to login after 2.4s
-- `login.tsx` — Login form; stores `authToken` + `authUser` in AsyncStorage; `API_BASE_URL` is hardcoded to the Render deployment (`https://loki-0pfz.onrender.com/api`)
+- `_layout.tsx` — Root stack navigator (includes onboarding stack)
+- `index.tsx` — Animated splash; reads `authToken` from AsyncStorage and routes to `/(tabs)/chat` if present, else `/onboarding`
+- `login.tsx` — Login form (existing users); uses `lib/apiClient.ts` for API calls
+- `onboarding/` — First-launch flow: entry → explainer → register → recovery stub
 - `(tabs)/` — Tab navigator (Chats, Calls, Profile)
 - `chat/newchat.tsx` — New chat modal (placeholder)
+- `lib/apiClient.ts` — Shared API helpers: base URL, headers, `apiPost` generic fetch wrapper
+- `components/PasswordInput.tsx` — Secure-entry field with show/hide toggle
 
 The mobile client sends every API request with two headers: `x-api-key` (from `EXPO_PUBLIC_API_KEY`) and `Authorization: Bearer <token>`.
 

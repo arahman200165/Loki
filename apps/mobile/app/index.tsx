@@ -2,12 +2,12 @@ import {
   View,
   Text,
   StyleSheet,
-  Pressable,
   Animated,
   Easing,
 } from "react-native";
 import { router } from "expo-router";
 import { useEffect, useRef } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Index() {
   const logoOpacity = useRef(new Animated.Value(0)).current;
@@ -56,8 +56,9 @@ export default function Index() {
 
     animation.start();
 
-    const timeout = setTimeout(() => {
-      router.replace("/login");
+    const timeout = setTimeout(async () => {
+      const token = await AsyncStorage.getItem("authToken");
+      router.replace(token ? "/(tabs)/chat" : "/onboarding");
     }, 2400);
 
     return () => {
