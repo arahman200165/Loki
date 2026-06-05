@@ -18,8 +18,14 @@ export const renderApiTable = ({ apiPrefix }) => {
         <tbody>
           <tr>
             <td><code>POST</code></td>
+            <td><code>${base}/auth/register</code></td>
+            <td>Create an account, default device, and bearer session.</td>
+            <td><code>x-api-key</code></td>
+          </tr>
+          <tr>
+            <td><code>POST</code></td>
             <td><code>${base}/auth/login</code></td>
-            <td>Login with hardcoded username/password and receive a bearer token.</td>
+            <td>Login with username/password and receive a bearer token.</td>
             <td><code>x-api-key</code></td>
           </tr>
           <tr>
@@ -30,9 +36,15 @@ export const renderApiTable = ({ apiPrefix }) => {
           </tr>
           <tr>
             <td><code>GET</code></td>
+            <td><code>${base}/auth/session</code></td>
+            <td>Return the authenticated session context for QA checks.</td>
+            <td><code>x-api-key</code> + <code>Authorization: Bearer &lt;token&gt;</code></td>
+          </tr>
+          <tr>
+            <td><code>GET</code></td>
             <td><code>${base}/health</code></td>
             <td>Health and uptime status.</td>
-            <td><code>x-api-key</code> + <code>Authorization: Bearer &lt;token&gt;</code></td>
+            <td>None</td>
           </tr>
         </tbody>
       </table>
