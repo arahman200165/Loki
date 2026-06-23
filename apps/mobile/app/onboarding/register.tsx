@@ -46,7 +46,7 @@ export default function Register() {
         ["authUser", JSON.stringify(data.user)],
       ]);
 
-      router.replace("/onboarding/recovery");
+      router.replace("/onboarding/choose-id");
     } catch {
       Alert.alert("Connection error", "Could not reach the server.");
     } finally {

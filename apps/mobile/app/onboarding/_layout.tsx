@@ -13,6 +13,8 @@ export default function OnboardingLayout() {
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="explainer" options={{ title: "How Loki works" }} />
       <Stack.Screen name="register" options={{ title: "Create account" }} />
+      <Stack.Screen name="choose-id" options={{ title: "Choose your ID" }} />
+      <Stack.Screen name="id-reveal" options={{ title: "Your Public ID" }} />
       <Stack.Screen name="recovery" options={{ title: "Recovery setup" }} />
     </Stack>
   );
