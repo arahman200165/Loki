@@ -47,7 +47,7 @@ export default function ManageId() {
 
   const daysUntilFree = (() => {
     if (!eligibleForFreeRotationAt || canRotateFree) return null;
-    return Math.ceil(
+    return Math.round(
       (eligibleForFreeRotationAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
     );
   })();
@@ -58,7 +58,7 @@ export default function ManageId() {
   };
 
   const handleRotate = async () => {
-    if (!validation?.valid || rotating) return;
+    if (!id || !validation?.valid || rotating) return;
 
     const confirmed = await new Promise<boolean>((resolve) =>
       Alert.alert(

@@ -6,7 +6,6 @@ import {
   Pressable,
   ActivityIndicator,
   Share,
-  Alert,
 } from "react-native";
 import { router } from "expo-router";
 import { usePublicId } from "../../hooks/usePublicId";
@@ -30,7 +29,7 @@ export default function IdReveal() {
     if (!eligibleForFreeRotationAt) return null;
     const now = new Date();
     if (now >= eligibleForFreeRotationAt) return "Free rotation available now.";
-    const days = Math.ceil(
+    const days = Math.round(
       (eligibleForFreeRotationAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
     );
     return `Free ID change available in ${days} day${days === 1 ? "" : "s"}.`;
