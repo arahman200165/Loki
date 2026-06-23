@@ -1,14 +1,14 @@
 // @loki/shared — single entry point for all shared contracts
 
 // Types
-export * from './types/auth.js';
-export * from './types/publicId.js';
-export * from './types/messages.js';
-export * from './types/groups.js';
-export * from './types/calls.js';
-export * from './types/devices.js';
-export * from './types/settings.js';
-export * from './types/retention.js';
+export * from './types/auth';
+export * from './types/publicId';
+export * from './types/messages';
+export * from './types/groups';
+export * from './types/calls';
+export * from './types/devices';
+export * from './types/settings';
+export * from './types/retention';
 
 // Utilities
-export * from './utils/publicId.js';
+export * from './utils/publicId';
