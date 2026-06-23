@@ -23,7 +23,7 @@ export default function ProfileScreen() {
       </View>
 
       <View style={styles.idSection}>
-        <Text style={styles.idLabel}>Public ID</Text>
+        <Text style={styles.idLabel}>Handle</Text>
         {loading ? (
           <ActivityIndicator color="#60a5fa" style={{ marginTop: 4 }} />
         ) : id ? (
@@ -38,7 +38,7 @@ export default function ProfileScreen() {
         onPress={() => router.push("/profile/manage-id")}
       >
         <Text style={styles.manageText}>
-          {id ? "Manage Public ID" : "Choose a Public ID"}
+          {id ? "Manage Handle" : "Choose a Handle"}
         </Text>
       </Pressable>
 

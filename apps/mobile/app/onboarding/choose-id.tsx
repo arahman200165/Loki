@@ -33,7 +33,7 @@ export default function ChooseId() {
       case "too_short": return "Too short — minimum 8 characters.";
       case "too_long": return "Too long — maximum 24 characters.";
       case "reserved": return "That ID is reserved. Pick something else.";
-      case "confusable": return "Contains characters that look like others. Use a–z and 0–9 only.";
+      case "confusable": return "Contains characters that look like others. Use letters and numbers only.";
       case "invalid_format": return "Only a–z, 0–9, and hyphens. Must start with a letter.";
     }
   })();
@@ -65,7 +65,7 @@ export default function ChooseId() {
       contentContainerStyle={styles.container}
       keyboardShouldPersistTaps="handled"
     >
-      <Text style={styles.heading}>Choose your Public ID</Text>
+      <Text style={styles.heading}>Choose your Handle</Text>
       <Text style={styles.subheading}>
         This is how people find and add you on Loki. It{"'"}s the only information
         you share when accepting a contact request.
@@ -94,7 +94,7 @@ export default function ChooseId() {
       <View style={styles.infoBox}>
         <Text style={styles.infoTitle}>No search, no directory</Text>
         <Text style={styles.infoBody}>
-          Your Public ID is only useful if you share it directly. Loki has no
+          Your handle is only useful if you share it directly. Loki has no
           search or public user list. Nobody can find you unless you give them
           your ID yourself.
         </Text>
@@ -110,10 +110,6 @@ export default function ChooseId() {
         ) : (
           <Text style={styles.buttonText}>Claim ID</Text>
         )}
-      </Pressable>
-
-      <Pressable style={styles.skipButton} onPress={() => router.replace("/onboarding/id-reveal")}>
-        <Text style={styles.skipText}>Skip for now</Text>
       </Pressable>
     </ScrollView>
   );
@@ -158,6 +154,4 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: { opacity: 0.4 },
   buttonText: { color: "#fff", fontWeight: "700", fontSize: 16 },
-  skipButton: { alignItems: "center", paddingVertical: 12 },
-  skipText: { color: "#64748b", fontSize: 14 },
 });

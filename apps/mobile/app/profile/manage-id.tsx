@@ -62,11 +62,11 @@ export default function ManageId() {
 
     const confirmed = await new Promise<boolean>((resolve) =>
       Alert.alert(
-        "Change your Public ID?",
-        `Your current ID "${id}" will be locked for 180 days. Existing contacts will keep seeing your old ID until they refresh. This cannot be undone.`,
+        "Change your handle?",
+        `Your current handle "${id}" will be locked for 180 days. Existing contacts will keep seeing your old handle until they refresh. This cannot be undone.`,
         [
           { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
-          { text: "Change ID", style: "destructive", onPress: () => resolve(true) },
+          { text: "Change handle", style: "destructive", onPress: () => resolve(true) },
         ]
       )
     );
@@ -83,7 +83,7 @@ export default function ManageId() {
       // Always 202 — check status to confirm
       setNewRaw("");
       await fetchStatus();
-      Alert.alert("Request submitted", "Check your ID below — if unchanged, the new ID may already be taken.");
+      Alert.alert("Request submitted", "Check your handle below — if unchanged, the new handle may already be taken.");
     } catch {
       Alert.alert("Connection error", "Could not reach the server. Try again.");
     } finally {
@@ -101,7 +101,7 @@ export default function ManageId() {
 
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-      <Text style={styles.sectionLabel}>Current Public ID</Text>
+      <Text style={styles.sectionLabel}>Your Handle</Text>
       {id ? (
         <>
           <View style={styles.idBox}>
@@ -112,12 +112,12 @@ export default function ManageId() {
           </Pressable>
         </>
       ) : (
-        <Text style={styles.noId}>No Public ID claimed yet.</Text>
+        <Text style={styles.noId}>No handle claimed yet.</Text>
       )}
 
       <View style={styles.divider} />
 
-      <Text style={styles.sectionLabel}>Change Public ID</Text>
+      <Text style={styles.sectionLabel}>Change Handle</Text>
 
       {canRotateFree ? (
         <Text style={styles.cooldownOk}>Free change available now.</Text>
@@ -132,7 +132,7 @@ export default function ManageId() {
 
       <TextInput
         style={[styles.input, inlineError ? styles.inputError : null]}
-        placeholder="new-public-id"
+        placeholder="new-handle"
         placeholderTextColor="#94a3b8"
         autoCapitalize="none"
         autoCorrect={false}
@@ -148,11 +148,11 @@ export default function ManageId() {
       ) : null}
 
       <View style={styles.warningBox}>
-        <Text style={styles.warningTitle}>Before you change your ID</Text>
+        <Text style={styles.warningTitle}>Before you change your handle</Text>
         <Text style={styles.warningBody}>
-          Your old ID is locked for 180 days — nobody else can claim it, but
-          existing contacts see your old ID until they update their records.
-          Changing your ID does not notify anyone.
+          Your old handle is locked for 180 days — nobody else can claim it, but
+          existing contacts see your old handle until they update their records.
+          Changing your handle does not notify anyone.
         </Text>
       </View>
 
@@ -164,7 +164,7 @@ export default function ManageId() {
         {rotating ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.rotateText}>Submit ID Change</Text>
+          <Text style={styles.rotateText}>Submit Handle Change</Text>
         )}
       </Pressable>
     </ScrollView>

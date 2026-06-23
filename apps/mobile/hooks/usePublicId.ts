@@ -37,7 +37,7 @@ export function usePublicId() {
       } else if (status === 404) {
         setState({ id: null, eligibleForFreeRotationAt: null, loading: false, error: null });
       } else {
-        setState((s) => ({ ...s, loading: false, error: "Could not load Public-ID." }));
+        setState((s) => ({ ...s, loading: false, error: "Could not load your handle." }));
       }
     } catch {
       setState((s) => ({ ...s, loading: false, error: "Connection error." }));

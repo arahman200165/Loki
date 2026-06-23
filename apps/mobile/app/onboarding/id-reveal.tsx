@@ -60,7 +60,7 @@ export default function IdReveal() {
     <View style={styles.container}>
       {id ? (
         <>
-          <Text style={styles.label}>Your Public ID</Text>
+          <Text style={styles.label}>Your Handle</Text>
           <View style={styles.idBox}>
             <Text style={styles.idText}>{id}</Text>
           </View>
@@ -78,7 +78,7 @@ export default function IdReveal() {
           <View style={styles.infoBox}>
             <Text style={styles.infoTitle}>Share this ID to connect</Text>
             <Text style={styles.infoBody}>
-              People need your exact Public ID to send a contact request. There
+              People need your exact handle to send a contact request. There
               is no search or discovery — only people you give it to can reach
               you.
             </Text>
@@ -87,7 +87,7 @@ export default function IdReveal() {
           <View style={styles.infoBox}>
             <Text style={styles.infoTitle}>Changing your ID</Text>
             <Text style={styles.infoBody}>
-              You can change your Public ID once every 7 days for free. Your old
+              You can change your handle once every 7 days for free. Your old
               ID is locked for 180 days and cannot be claimed by anyone else.
               Changing your ID does not notify existing contacts.
             </Text>
@@ -95,19 +95,23 @@ export default function IdReveal() {
         </>
       ) : (
         <>
-          <Text style={styles.noIdHeading}>No Public ID yet</Text>
+          <Text style={styles.noIdHeading}>That ID wasn{"'"}t available</Text>
           <Text style={styles.noIdBody}>
-            You skipped choosing a Public ID. You can set one any time from your
-            Profile tab.
+            The ID you chose may already be taken. Go back and try a different one —
+            you need a handle before you can receive contact requests.
           </Text>
         </>
       )}
 
       <Pressable
         style={styles.continueButton}
-        onPress={() => router.replace("/onboarding/recovery")}
+        onPress={() =>
+          id
+            ? router.replace("/onboarding/recovery")
+            : router.replace("/onboarding/choose-id")
+        }
       >
-        <Text style={styles.continueText}>Continue</Text>
+        <Text style={styles.continueText}>{id ? "Continue" : "Try another ID"}</Text>
       </Pressable>
     </View>
   );

@@ -22,7 +22,7 @@ export default function RootLayout() {
       />
       <Stack.Screen
         name="profile/manage-id"
-        options={{ title: "Manage Public ID" }}
+        options={{ title: "Manage Handle" }}
       />
     </Stack>
   );
