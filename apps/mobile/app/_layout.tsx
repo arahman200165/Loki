@@ -20,6 +20,10 @@ export default function RootLayout() {
           title: "New Chat",
         }}
       />
+      <Stack.Screen
+        name="profile/manage-id"
+        options={{ title: "Manage Handle" }}
+      />
     </Stack>
   );
 }

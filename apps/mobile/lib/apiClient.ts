@@ -83,3 +83,15 @@ export const apiPost = async <T>(
   const data = (await response.json()) as T;
   return { ok: response.ok, status: response.status, data };
 };
+
+export const apiGet = async <T>(
+  path: string,
+  token?: string | null
+): Promise<{ ok: boolean; status: number; data: T }> => {
+  const response = await fetch(`${API_BASE_URL}/${API_VERSION}${path}`, {
+    method: "GET",
+    headers: buildHeaders({ token }),
+  });
+  const data = (await response.json()) as T;
+  return { ok: response.ok, status: response.status, data };
+};

@@ -7,6 +7,7 @@ import swaggerUi from 'swagger-ui-express';
 import { env } from './config/env.js';
 import apiRoutes from './routes/index.js';
 import authRoutes from './routes/authRoutes.js';
+import publicIdRoutes from './routes/publicIdRoutes.js';
 import { createOpenApiDocument } from './docs/openapi.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -61,6 +62,7 @@ app.use(
 );
 
 app.use(`${env.apiPrefix}/auth`, requireApiKey, authRoutes);
+app.use(`${env.apiPrefix}/public-id`, requireApiKey, publicIdRoutes);
 app.use(env.apiPrefix, apiRoutes);
 
 app.use(notFound);
