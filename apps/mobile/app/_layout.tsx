@@ -14,11 +14,15 @@ export default function RootLayout() {
       <Stack.Screen name="onboarding" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen
-        name="chat/newchat"
+        name="chat/new-chat"
         options={{
           presentation: "modal",
           title: "New Chat",
         }}
+      />
+      <Stack.Screen
+        name="requests/index"
+        options={{ title: "Contact Requests" }}
       />
       <Stack.Screen
         name="profile/manage-id"

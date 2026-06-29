@@ -33,6 +33,15 @@ export const findActiveByAccountId = async (accountId, client) => {
   return result.rows[0] ?? null;
 };
 
+// Look up account_id given an active Public-ID string.
+export const findAccountIdByPublicId = async (publicId, client) => {
+  const result = await run(client)(
+    `SELECT account_id FROM public_ids_active WHERE id = $1`,
+    [publicId]
+  );
+  return result.rows[0]?.account_id ?? null;
+};
+
 // Atomically move old ID to history and insert new active ID.
 // Must be called inside a transaction (pass client).
 // Returns false if account has no active ID.
