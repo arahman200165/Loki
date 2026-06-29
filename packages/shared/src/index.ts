@@ -9,6 +9,7 @@ export * from './types/calls';
 export * from './types/devices';
 export * from './types/settings';
 export * from './types/retention';
+export * from './types/contacts';
 
 // Utilities
 export * from './utils/publicId';

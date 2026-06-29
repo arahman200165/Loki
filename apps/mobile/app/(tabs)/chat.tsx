@@ -3,6 +3,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+// Stubbed count — replaced with real API fetch when task 4.3 (GET /contact-request/pending) lands
+const MOCK_PENDING_COUNT = 2;
+
 const chats = [
   { id: "1", name: "Alice", lastMessage: "Hey, are you free later?" },
   { id: "2", name: "Bob", lastMessage: "Let’s push the backend update." },
@@ -44,6 +47,19 @@ export default function ChatScreen() {
         </Pressable>
       </View>
 
+      {MOCK_PENDING_COUNT > 0 && (
+        <Pressable
+          style={styles.requestsBanner}
+          onPress={() => router.push("/requests")}
+        >
+          <Text style={styles.requestsBannerText}>
+            {MOCK_PENDING_COUNT} pending request
+            {MOCK_PENDING_COUNT > 1 ? "s" : ""}
+          </Text>
+          <Ionicons name="chevron-forward" size={18} color="#60a5fa" />
+        </Pressable>
+      )}
+
       <FlatList
         data={chats}
         keyExtractor={(item) => item.id}
@@ -67,7 +83,7 @@ export default function ChatScreen() {
 
       <Pressable
         style={styles.newChatFab}
-        onPress={() => router.push("/chat/newchat")}
+        onPress={() => router.push("/chat/new-chat")}
       >
         <Ionicons name="add" size={28} color="#fff" />
       </Pressable>
@@ -138,6 +154,23 @@ const styles = StyleSheet.create({
   chatMessage: {
     color: "#94a3b8",
     fontSize: 14,
+  },
+  requestsBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#172554",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: "#1e4a72",
+  },
+  requestsBannerText: {
+    color: "#93c5fd",
+    fontSize: 14,
+    fontWeight: "600",
   },
   newChatFab: {
     position: "absolute",
