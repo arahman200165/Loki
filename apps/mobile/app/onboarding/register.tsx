@@ -13,6 +13,7 @@ import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import PasswordInput from "../../components/PasswordInput";
 import { apiPost } from "../../lib/apiClient";
+import { generateIdempotencyKey } from "../../lib/idempotency";
 import type { RegisterResponse } from "@loki/shared";
 
 export default function Register() {
@@ -30,7 +31,9 @@ export default function Register() {
       setLoading(true);
       const { ok, data } = await apiPost<RegisterResponse>(
         "/auth/register",
-        { username: username.trim(), password }
+        { username: username.trim(), password },
+        null,
+        { idempotencyKey: generateIdempotencyKey() }
       );
 
       if (!ok) {

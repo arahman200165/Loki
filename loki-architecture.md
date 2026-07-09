@@ -602,6 +602,7 @@ The server is **semi-trusted**: it holds ciphertext, routing metadata, and accou
 | `Session`                  | A short-lived auth token bound to an account and device                              | Server                                     | Active → Invalidated (logout, revoke, expiry)                 |
 | `PublicId`                 | A user-chosen shareable identifier (e.g., `dancing-panda927`)                        | Server                                     | Active → Deprecated → (180 days later) Released               |
 | `ContactRequest`           | A pending request from sender to recipient by Public-ID                              | Server                                     | Pending → Accepted / Denied / Expired                         |
+| `Block`                    | A unilateral, silent block from one account against another                          | Server                                     | Active; no unblock UI in MVP                                  |
 | `Conversation`             | A 1:1 or group chat thread (logical)                                                 | Mobile (server only sees envelope routing) | Active → Hidden (in vault) → Active again                     |
 | `ConversationParticipant`  | Membership link in a conversation                                                    | Server (groups only) + Mobile              | Active → Left / Removed                                       |
 | `GroupRole`                | Admin or member                                                                      | Server                                     | Member → Admin (transfer) → Member                            |
@@ -622,6 +623,7 @@ erDiagram
     ACCOUNT ||--|| PUBLIC_ID : "currently active"
     ACCOUNT ||--o{ PUBLIC_ID : "has deprecated"
     ACCOUNT ||--o{ CONTACT_REQUEST : "sends/receives"
+    ACCOUNT ||--o{ BLOCK : "blocks"
     DEVICE ||--o{ SESSION : has
     DEVICE ||--o{ MAILBOX : "owns one"
     MAILBOX ||--o{ MESSAGE_ENVELOPE : queues
@@ -1230,7 +1232,7 @@ sequenceDiagram
     participant DB as PostgreSQL
 
     User->>App: Long-press contact → Block
-    App->>API: POST /api/v1/contacts/:id/block
+    App->>API: POST /api/v1/contact-request/block
     API->>DB: Insert into blocks
     API-->>App: success
     App->>User: Contact disappears from list
@@ -2049,6 +2051,28 @@ CREATE INDEX contact_requests_expiry_idx
 - `UPDATE contact_requests SET status = 'accepted' WHERE id = $1 AND recipient_account_id = $2` (respond)
 - `UPDATE contact_requests SET status = 'expired' WHERE expires_at < now() AND status = 'pending'` (cleanup, Sprint 14.1)
 
+#### `blocks`
+
+```sql
+CREATE TABLE blocks (
+    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    blocker_account_id  UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    blocked_account_id  UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (blocker_account_id, blocked_account_id)
+);
+
+CREATE INDEX idx_blocks_blocker ON blocks(blocker_account_id);
+CREATE INDEX idx_blocks_blocked ON blocks(blocked_account_id);
+```
+
+**Query patterns:**
+
+- `SELECT 1 FROM blocks WHERE blocker_account_id = $1 AND blocked_account_id = $2` (block check on send, per ADR-029)
+- `INSERT INTO blocks (blocker_account_id, blocked_account_id) VALUES ($1, $2) ON CONFLICT DO NOTHING` (block)
+
+No TTL — a block is a durable user decision, not a delivery artifact. Permanent by design until the blocker removes it (no unblock UI exists yet in MVP).
+
 #### `groups`, `group_members`, `group_events`
 
 ```sql
@@ -2223,7 +2247,7 @@ Authorization: there is no role model in MVP beyond:
 | Auth        | `/auth/register`, `/auth/login`, `/auth/logout`                                                                       | `/api/v1`  |
 | Recovery    | `/auth/recovery/setup`, `/auth/recovery/verify`                                                                       | `/api/v1`  |
 | Public-ID   | `/public-id/claim`, `/public-id/rotate`, `/public-id/status`                                                          | `/api/v1`  |
-| Contact     | `/contact-request/send`, `/contact-request/respond`, `/contact-request/pending`                                       | `/api/v1`  |
+| Contact     | `/contact-request/send`, `/contact-request/respond`, `/contact-request/pending`, `/contact-request/block`             | `/api/v1`  |
 | Messages    | `/messages/send`, `/messages/fetch`, `/messages/ack`                                                                  | `/api/v1`  |
 | Groups      | `/groups/create`, `/groups/:id/members`, `/groups/:id/members/add`, `/groups/:id/members/remove`, `/groups/:id/leave` | `/api/v1`  |
 | Calls       | `/calls/initiate`, `/calls/:id/respond`, `/calls/:id/leave`, `/calls/:id/terminate`, `/calls/:id/state`               | `/api/v1`  |

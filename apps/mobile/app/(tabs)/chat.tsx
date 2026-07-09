@@ -1,10 +1,11 @@
+import { useCallback, useState } from "react";
 import { View, Text, StyleSheet, FlatList, Pressable, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-// Stubbed count — replaced with real API fetch when task 4.3 (GET /contact-request/pending) lands
-const MOCK_PENDING_COUNT = 2;
+import type { PendingContactRequestsResponse } from "@loki/shared";
+import { apiGet } from "../../lib/apiClient";
 
 const chats = [
   { id: "1", name: "Alice", lastMessage: "Hey, are you free later?" },
@@ -18,6 +19,27 @@ const chats = [
 ];
 
 export default function ChatScreen() {
+  const [pendingCount, setPendingCount] = useState(0);
+
+  const refreshPendingCount = useCallback(async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+      const { ok, data } = await apiGet<PendingContactRequestsResponse>(
+        "/contact-request/pending",
+        token
+      );
+      setPendingCount(ok ? data.requests.length : 0);
+    } catch {
+      setPendingCount(0);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshPendingCount();
+    }, [refreshPendingCount])
+  );
+
   const handleLogout = () => {
     Alert.alert("Logout", "Are you sure you want to log out?", [
       { text: "Cancel", style: "cancel" },
@@ -47,14 +69,14 @@ export default function ChatScreen() {
         </Pressable>
       </View>
 
-      {MOCK_PENDING_COUNT > 0 && (
+      {pendingCount > 0 && (
         <Pressable
           style={styles.requestsBanner}
           onPress={() => router.push("/requests")}
         >
           <Text style={styles.requestsBannerText}>
-            {MOCK_PENDING_COUNT} pending request
-            {MOCK_PENDING_COUNT > 1 ? "s" : ""}
+            {pendingCount} pending request
+            {pendingCount > 1 ? "s" : ""}
           </Text>
           <Ionicons name="chevron-forward" size={18} color="#60a5fa" />
         </Pressable>

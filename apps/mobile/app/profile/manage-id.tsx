@@ -16,6 +16,7 @@ import {
   normalizePublicId,
 } from "@loki/shared";
 import { apiPost } from "../../lib/apiClient";
+import { generateIdempotencyKey } from "../../lib/idempotency";
 import { usePublicId } from "../../hooks/usePublicId";
 import type { RotatePublicIdResponse } from "@loki/shared";
 
@@ -78,7 +79,8 @@ export default function ManageId() {
       await apiPost<RotatePublicIdResponse>(
         "/public-id/rotate",
         { new_public_id: normalized },
-        token
+        token,
+        { idempotencyKey: generateIdempotencyKey() }
       );
       // Always 202 — check status to confirm
       setNewRaw("");

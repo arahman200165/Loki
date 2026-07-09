@@ -16,6 +16,7 @@ import {
   normalizePublicId,
 } from "@loki/shared";
 import { apiPost } from "../../lib/apiClient";
+import { generateIdempotencyKey } from "../../lib/idempotency";
 import type { ClaimPublicIdResponse } from "@loki/shared";
 
 const RULES = "8–24 characters · letters and numbers · can include hyphens · must start with a letter";
@@ -48,7 +49,8 @@ export default function ChooseId() {
       await apiPost<ClaimPublicIdResponse>(
         "/public-id/claim",
         { public_id: normalized },
-        token
+        token,
+        { idempotencyKey: generateIdempotencyKey() }
       );
       // Server always returns 202 submitted — navigate and let id-reveal confirm via /status
       router.replace("/onboarding/id-reveal");

@@ -23,7 +23,7 @@ const CONFUSABLE = new Set([
   'ó', 'é', 'à', 'ä', 'ü', 'ö',
 ]);
 
-const isValidPublicId = (id) => {
+export const isValidPublicId = (id) => {
   if (typeof id !== 'string') return false;
   if (RESERVED.has(id)) return false;
   if (id.length < PUBLIC_ID_MIN || id.length > PUBLIC_ID_MAX) return false;
