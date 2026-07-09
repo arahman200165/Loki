@@ -13,7 +13,13 @@ export const createOpenApiDocument = ({ apiPrefix, apiKeyHeader }) => ({
   ],
   tags: [
     { name: 'Health', description: 'Public service and database health checks.' },
-    { name: 'Auth', description: 'Account registration, login, logout, and session inspection.' }
+    { name: 'Auth', description: 'Account registration, login, logout, and session inspection.' },
+    {
+      name: 'Contact',
+      description:
+        'Contact-request lifecycle (send, respond, list pending) and blocking. The send endpoint ' +
+        'always returns a uniform response regardless of whether the target Public-ID exists.'
+    }
   ],
   components: {
     securitySchemes: {
@@ -135,6 +141,89 @@ export const createOpenApiDocument = ({ apiPrefix, apiKeyHeader }) => ({
         properties: {
           message: {
             type: 'string'
+          }
+        }
+      },
+      SendContactRequestRequest: {
+        type: 'object',
+        required: ['recipient_public_id'],
+        properties: {
+          recipient_public_id: {
+            type: 'string',
+            example: 'dancing-panda927'
+          },
+          first_message: {
+            type: 'string',
+            nullable: true,
+            maxLength: 200,
+            description: 'Plaintext for MVP; E2E encrypted once Sprint 6 lands.'
+          },
+          device_specific: {
+            type: 'boolean',
+            description: 'Accepted for forward-compat with Sprint 11.6; not yet persisted.'
+          }
+        }
+      },
+      SubmittedResponse: {
+        type: 'object',
+        required: ['status'],
+        description: 'Uniform anti-enumeration response. Returned for every input to /send.',
+        properties: {
+          status: {
+            type: 'string',
+            enum: ['submitted']
+          }
+        }
+      },
+      OkResponse: {
+        type: 'object',
+        required: ['status'],
+        properties: {
+          status: {
+            type: 'string',
+            enum: ['ok']
+          }
+        }
+      },
+      ContactRequestSummary: {
+        type: 'object',
+        required: ['id', 'sender_public_id', 'first_message', 'created_at', 'expires_at', 'status'],
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          sender_public_id: { type: 'string', example: 'dancing-panda927' },
+          first_message: { type: 'string', nullable: true },
+          created_at: { type: 'string', format: 'date-time' },
+          expires_at: { type: 'string', format: 'date-time' },
+          status: { type: 'string', enum: ['pending', 'accepted', 'denied', 'expired'] }
+        }
+      },
+      PendingContactRequestsResponse: {
+        type: 'object',
+        required: ['requests'],
+        properties: {
+          requests: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/ContactRequestSummary' }
+          }
+        }
+      },
+      RespondContactRequestRequest: {
+        type: 'object',
+        required: ['request_id', 'action'],
+        properties: {
+          request_id: { type: 'string', format: 'uuid' },
+          action: { type: 'string', enum: ['accept', 'deny'] }
+        }
+      },
+      BlockContactRequest: {
+        type: 'object',
+        required: ['target_public_id'],
+        properties: {
+          target_public_id: { type: 'string', example: 'dancing-panda927' },
+          request_id: {
+            type: 'string',
+            format: 'uuid',
+            description: 'If present, also denies the associated pending request.'
           }
         }
       }
@@ -374,6 +463,137 @@ export const createOpenApiDocument = ({ apiPrefix, apiKeyHeader }) => ({
                 }
               }
             }
+          }
+        }
+      }
+    },
+    '/contact-request/send': {
+      post: {
+        tags: ['Contact'],
+        summary: 'Send a contact request by exact Public-ID',
+        description:
+          'Always returns 202 { status: "submitted" }, regardless of whether the Public-ID is ' +
+          'invalid, unknown, reserved, deprecated, confusable, or belongs to someone who has ' +
+          'blocked the caller. This uniformity is a hard anti-enumeration requirement, not a bug.',
+        security: [{ ApiKeyAuth: [], BearerAuth: [] }],
+        parameters: [
+          {
+            name: 'Idempotency-Key',
+            in: 'header',
+            required: false,
+            schema: { type: 'string', format: 'uuid' },
+            description: 'Client-generated UUID. Replaying the same key returns the identical response.'
+          }
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/SendContactRequestRequest' }
+            }
+          }
+        },
+        responses: {
+          202: {
+            description: 'Submitted (uniform for all inputs).',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/SubmittedResponse' }
+              }
+            }
+          },
+          401: {
+            description: 'Missing or invalid bearer token.',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+          }
+        }
+      }
+    },
+    '/contact-request/pending': {
+      get: {
+        tags: ['Contact'],
+        summary: 'List pending incoming contact requests',
+        security: [{ ApiKeyAuth: [], BearerAuth: [] }],
+        responses: {
+          200: {
+            description: 'Pending requests addressed to the authenticated account.',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/PendingContactRequestsResponse' }
+              }
+            }
+          },
+          401: {
+            description: 'Missing or invalid bearer token.',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+          }
+        }
+      }
+    },
+    '/contact-request/respond': {
+      post: {
+        tags: ['Contact'],
+        summary: 'Accept or deny a pending contact request',
+        description:
+          'Always returns 200 { status: "ok" }, whether or not request_id referred to a request ' +
+          'actually owned by the caller and still pending.',
+        security: [{ ApiKeyAuth: [], BearerAuth: [] }],
+        parameters: [
+          {
+            name: 'Idempotency-Key',
+            in: 'header',
+            required: false,
+            schema: { type: 'string', format: 'uuid' }
+          }
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/RespondContactRequestRequest' }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Acknowledged (uniform).',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/OkResponse' } } }
+          },
+          401: {
+            description: 'Missing or invalid bearer token.',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+          }
+        }
+      }
+    },
+    '/contact-request/block': {
+      post: {
+        tags: ['Contact'],
+        summary: 'Block a contact by Public-ID',
+        description:
+          'Always returns 200 { status: "ok" }. The blocked party receives no signal. If ' +
+          'request_id is supplied, the associated pending request is also denied.',
+        security: [{ ApiKeyAuth: [], BearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: { $ref: '#/components/schemas/BlockContactRequest' }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Acknowledged (uniform).',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/OkResponse' } } }
+          },
+          400: {
+            description: 'target_public_id missing.',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+          },
+          401: {
+            description: 'Missing or invalid bearer token.',
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
           }
         }
       }

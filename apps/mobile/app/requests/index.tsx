@@ -15,31 +15,14 @@ import type {
   RespondContactRequestResponse,
 } from "@loki/shared";
 import { apiGet, apiPost } from "../../lib/apiClient";
+import { generateIdempotencyKey } from "../../lib/idempotency";
 import RequestCard from "../../components/RequestCard";
-
-const MOCK_REQUESTS: ContactRequestSummary[] = [
-  {
-    id: "req-mock-1",
-    sender_public_id: "alice-wonder88",
-    first_message: "Hey! It's Alice from the conference.",
-    created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    expires_at: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-    status: "pending",
-  },
-  {
-    id: "req-mock-2",
-    sender_public_id: "bob-the-builder77",
-    first_message: null,
-    created_at: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString(),
-    expires_at: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString(),
-    status: "pending",
-  },
-];
 
 export default function RequestsScreen() {
   const [requests, setRequests] = useState<ContactRequestSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(false);
 
   const fetchRequests = useCallback(async () => {
     try {
@@ -50,12 +33,12 @@ export default function RequestsScreen() {
       );
       if (ok) {
         setRequests(data.requests);
+        setError(false);
       } else {
-        // Endpoint not yet implemented (tasks 4.1–4.3) — fall back to mock data
-        setRequests(MOCK_REQUESTS);
+        setError(true);
       }
     } catch {
-      setRequests(MOCK_REQUESTS);
+      setError(true);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -83,7 +66,8 @@ export default function RequestsScreen() {
       await apiPost<RespondContactRequestResponse>(
         "/contact-request/respond",
         { request_id: requestId, action } satisfies RespondContactRequestRequest,
-        token
+        token,
+        { idempotencyKey: generateIdempotencyKey() }
       );
     } catch {
       // Swallow — optimistic removal already applied
@@ -121,7 +105,11 @@ export default function RequestsScreen() {
         )}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>No pending requests.</Text>
+            <Text style={styles.emptyText}>
+              {error
+                ? "Couldn't load requests. Pull to retry."
+                : "No pending requests."}
+            </Text>
           </View>
         }
       />

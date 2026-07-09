@@ -73,11 +73,15 @@ export const buildHeaders = (options: {
 export const apiPost = async <T>(
   path: string,
   body: unknown,
-  token?: string | null
+  token?: string | null,
+  options?: { idempotencyKey?: string }
 ): Promise<{ ok: boolean; status: number; data: T }> => {
+  const headers = buildHeaders({ json: true, token });
+  if (options?.idempotencyKey) headers["Idempotency-Key"] = options.idempotencyKey;
+
   const response = await fetch(`${API_BASE_URL}/${API_VERSION}${path}`, {
     method: "POST",
-    headers: buildHeaders({ json: true, token }),
+    headers,
     body: JSON.stringify(body),
   });
   const data = (await response.json()) as T;

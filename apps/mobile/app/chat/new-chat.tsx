@@ -19,6 +19,7 @@ import {
   type SendContactRequestResponse,
 } from "@loki/shared";
 import { apiPost } from "../../lib/apiClient";
+import { generateIdempotencyKey } from "../../lib/idempotency";
 
 const MAX_FIRST_MESSAGE_LENGTH = 200;
 
@@ -80,7 +81,8 @@ export default function NewChatScreen() {
       await apiPost<SendContactRequestResponse>(
         "/contact-request/send",
         payload,
-        token
+        token,
+        { idempotencyKey: generateIdempotencyKey() }
       );
     } catch {
       // Swallow — modal closes silently regardless (anti-enumeration)
