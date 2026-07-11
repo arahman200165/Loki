@@ -13,7 +13,7 @@ in on separate sessions/devices for mobile checks. Use the Swagger UI at
 
 - [ ] Valid, unclaimed-by-anyone-else Public-ID belonging to a real account → `202 { "status": "submitted" }`
 - [ ] Format-invalid Public-ID (too short, bad chars, trailing hyphen) → identical `202 { "status": "submitted" }`
-- [ ] Reserved Public-ID (e.g. `admin`) → identical `202` response
+- [ ] Reserved Public-ID (e.g. `security` or `verified` — must be ≥8 chars to pass the length check first; `admin` alone is 5 chars and fails on length before the reserved check) → identical `202` response
 - [ ] Deprecated/rotated Public-ID (rotate an account's ID first, then send to the old value) → identical `202` response
 - [ ] Syntactically valid but never-claimed Public-ID → identical `202` response
 - [ ] Confirm response body, status code, and `Content-Type` are byte-identical across all of the above (diff the raw responses, not just eyeballing)
@@ -47,7 +47,8 @@ in on separate sessions/devices for mobile checks. Use the Swagger UI at
 ## Mobile — New Chat (4.4)
 
 - [ ] Enter a valid-format Public-ID + first message → Send → modal closes, no error shown regardless of whether the ID exists
-- [ ] Enter a malformed Public-ID → inline format error shown before submission is possible
+- [ ] Enter a malformed Public-ID (e.g. `hi`, `bad--id99`, `bad-end-`, `1startnum`) → inline format error shown on blur; Send button stays disabled
+- [ ] Enter a reserved Public-ID (e.g. `security` or `verified`) → "That ID is reserved." error shown; **do not use `admin-loki12`** — that is a valid non-reserved ID that happens to start with the word "admin"; the reserved check is exact-match only
 - [ ] Device-specific toggle can be switched on/off; info box appears/disappears accordingly
 - [ ] Airplane mode / server unreachable during send → modal still closes silently (no crash, no leaked error detail)
 
@@ -66,6 +67,28 @@ in on separate sessions/devices for mobile checks. Use the Swagger UI at
 - [ ] Confirming block removes the card from the list and also denies the associated request server-side
 - [ ] Cancelling the block `Alert` leaves the request untouched
 - [ ] **Out of scope for this sprint (confirmed):** no "block from chat" entry point exists yet — there is no chat thread/details screen in the app. This is expected; it lands with Sprint 5.6 / 15.5, reusing the same `BlockAction` component.
+
+## QA Sign-off
+
+**Sprint 4 QA completed by Vishal — 2026-07-11.**
+
+All sections passed. One QA doc bug was identified and corrected in this commit (reserved Public-ID test case — see Mobile New Chat section above). No code bugs found.
+
+| Section | Result |
+|---|---|
+| Auth guards (all contact endpoints) | ✅ PASS |
+| `POST /contact-request/send` anti-enumeration | ✅ PASS |
+| Blocking enforcement (ADR-029) | ✅ PASS |
+| Accept / deny / pending list | ✅ PASS |
+| Idempotency (ADR-018) | ✅ PASS |
+| DB table structure (blocks + contact_requests) | ✅ PASS |
+| Mobile — New Chat screen (4.4) | ✅ PASS |
+| Mobile — Pending Requests screen (4.5) | ✅ PASS |
+| Mobile — Blocking flow (4.6) | ✅ PASS |
+| Privacy checks | ✅ PASS |
+| Sprint 3 regression | ✅ PASS |
+
+---
 
 ## Known gaps / follow-ups surfaced during this pass
 
