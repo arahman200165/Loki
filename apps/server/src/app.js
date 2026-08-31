@@ -9,6 +9,7 @@ import apiRoutes from './routes/index.js';
 import authRoutes from './routes/authRoutes.js';
 import publicIdRoutes from './routes/publicIdRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
+import callRoutes from './routes/callRoutes.js';
 import { createOpenApiDocument } from './docs/openapi.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -65,6 +66,7 @@ app.use(
 app.use(`${env.apiPrefix}/auth`, requireApiKey, authRoutes);
 app.use(`${env.apiPrefix}/public-id`, requireApiKey, publicIdRoutes);
 app.use(`${env.apiPrefix}/contact-request`, requireApiKey, contactRoutes);
+app.use(`${env.apiPrefix}/calls`, requireApiKey, callRoutes);
 app.use(env.apiPrefix, apiRoutes);
 
 app.use(notFound);

@@ -68,6 +68,21 @@ export const respondToRequest = async (
   return (result.rowCount ?? 0) > 0;
 };
 
+// True if an accepted contact_request exists between the two accounts, in either
+// direction. Used to gate call initiation (Sprint 8) — calls only happen between
+// established contacts, not arbitrary accounts.
+export const isAcceptedContact = async (accountIdA, accountIdB, client) => {
+  const result = await run(client)(
+    `SELECT 1 FROM contact_requests
+     WHERE status = 'accepted'
+       AND ((sender_account_id = $1 AND recipient_account_id = $2)
+         OR (sender_account_id = $2 AND recipient_account_id = $1))
+     LIMIT 1`,
+    [accountIdA, accountIdB]
+  );
+  return (result.rowCount ?? 0) > 0;
+};
+
 // Marks stale pending requests as expired. Exported now per task 4.1; scheduling this
 // on a recurring job is task 14.1.
 export const expireStalePending = async (client) => {

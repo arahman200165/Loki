@@ -7,15 +7,21 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { PendingContactRequestsResponse } from "@loki/shared";
 import { apiGet } from "../../lib/apiClient";
 
+// publicId/memberPublicIds are placeholders until Sprint 5.5 replaces this
+// mock list with real accepted-contact-backed data. They exist so Sprint 8's
+// call buttons have a real Public-ID to call — swap in a genuine accepted
+// contact's Public-ID here to manually test calling end-to-end.
 const chats = [
-  { id: "1", name: "Alice", lastMessage: "Hey, are you free later?" },
-  { id: "2", name: "Bob", lastMessage: "Let’s push the backend update." },
+  { id: "1", name: "Alice", lastMessage: "Hey, are you free later?", publicId: "dancing-panda927" },
+  { id: "2", name: "Bob", lastMessage: "Let’s push the backend update.", publicId: "brave-otter042" },
   {
     id: "3",
     name: "Team Loki",
     lastMessage: "New build is ready for testing.",
+    isGroup: true,
+    memberPublicIds: ["brave-otter042", "dancing-panda927", "calm-falcon615"],
   },
-  { id: "4", name: "Sarah", lastMessage: "Can you send the design draft?" },
+  { id: "4", name: "Sarah", lastMessage: "Can you send the design draft?", publicId: "quiet-heron318" },
 ];
 
 export default function ChatScreen() {
@@ -88,7 +94,21 @@ export default function ChatScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => (
-          <Pressable style={styles.chatCard}>
+          <Pressable
+            style={styles.chatCard}
+            onPress={() =>
+              router.push({
+                pathname: "/chat/[id]",
+                params: {
+                  id: item.id,
+                  name: item.name,
+                  ...(item.isGroup
+                    ? { isGroup: "1", memberPublicIds: item.memberPublicIds!.join(",") }
+                    : { publicId: item.publicId }),
+                },
+              })
+            }
+          >
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>{item.name.charAt(0)}</Text>
             </View>

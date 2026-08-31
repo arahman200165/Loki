@@ -1,6 +1,36 @@
-import { Stack } from "expo-router";
+import { useEffect, useRef } from "react";
+import { Stack, router } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  requestCallNotificationPermission,
+  subscribeToIncomingCalls,
+} from "../services/callNotificationHandler";
 
 export default function RootLayout() {
+  const seenCallIdsRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    requestCallNotificationPermission();
+
+    const unsubscribe = subscribeToIncomingCalls(
+      () => AsyncStorage.getItem("authToken"),
+      (call) => {
+        if (seenCallIdsRef.current.has(call.call_id)) return;
+        seenCallIdsRef.current.add(call.call_id);
+        router.push({
+          pathname: "/call/incoming",
+          params: {
+            callId: call.call_id,
+            type: call.type,
+            initiatorPublicId: call.initiator_public_id,
+          },
+        });
+      }
+    );
+
+    return unsubscribe;
+  }, []);
+
   return (
     <Stack
       screenOptions={{
@@ -13,6 +43,7 @@ export default function RootLayout() {
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="onboarding" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="call" options={{ headerShown: false, presentation: "fullScreenModal" }} />
       <Stack.Screen
         name="chat/new-chat"
         options={{
