@@ -3368,7 +3368,7 @@ The full ADR archive lives at `docs/adr/`. Below is an index plus the most archi
 | ADR-004 | Single-region deployment for MVP                           | Accepted | 2026-04-15 | Abdul         |
 | ADR-005 | Single Express monolith, no internal microservices         | Accepted | 2026-04-15 | Abdul         |
 | ADR-006 | Cryptographic library choice (libsodium vs tweetnacl)      | Open     | TBD        | Abdul         |
-| ADR-007 | Calling stack and TURN provider                            | Open     | TBD        | Abdul, Eric   |
+| ADR-007 | Calling stack and TURN provider                            | Accepted | 2026-08-31 | Abdul, Eric   |
 | ADR-008 | Externalize mobile API base URL via EXPO*PUBLIC* env var   | Proposed | 2026-05-01 | Abdul         |
 | ADR-009 | Token storage on mobile (AsyncStorage vs SecureStore)      | Open     | TBD        | Abdul         |
 | ADR-010 | Forward secrecy in 1:1 messaging — defer to Phase 2        | Accepted | 2026-04-20 | Abdul         |
@@ -3416,6 +3416,17 @@ The full ADR archive lives at `docs/adr/`. Below is an index plus the most archi
   3. Single flat codebase (rejected: hard to maintain ownership boundaries).
 - **Decision:** Option 2. Each controller is a module; cross-module calls are explicit; database is shared but accessed only via models.
 - **Consequences:** Easier to deploy, harder to scale specific functions independently. Phase 3 may revisit.
+
+#### ADR-007: Calling stack and TURN provider
+
+- **Problem:** Sprint 8 needs a concrete WebRTC media stack and NAT-traversal provider for 1:1 and group calling.
+- **Context:** No self-hosted SFU/TURN (glossary); no WebSockets (ADR-028), so signaling has to ride over polled HTTP; 4-engineer team bandwidth (same reasoning as ADR-005).
+- **Options considered:**
+  1. Managed WebRTC-as-a-service (SFU-backed, e.g. LiveKit/Twilio/Daily) — rejected; media is decrypted at the vendor's SFU for routing, contradicting "server never sees media," and adds an operational dependency disproportionate to the team.
+  2. Pure P2P WebRTC + TURN-only fallback (chosen).
+  3. P2P for 1:1 only, defer group calling — rejected; PRD §9.13 and release criteria require group calling in MVP.
+- **Decision:** Option 2. `react-native-webrtc`, pure P2P mesh, **Metered.ca** TURN-only (ephemeral REST-issued credentials). Group call cap: **8 participants** (mesh-bandwidth bound, independent of the 25-person messaging group cap). Signaling rides three new HTTP endpoints (`POST/GET /calls/:id/signal`, `GET /calls/pending`) rather than WebSockets. Incoming-call reliability is scoped to foreground/backgrounded-but-running; force-quit delivery (CallKit/PushKit) is a Phase-2 follow-up. Full detail in `docs/adr/007-calling-stack-turn-provider.md`.
+- **Consequences:** No third party ever touches decrypted call media. Group calls are mesh-bounded by device bandwidth/CPU, not by a clean product decision — watch this in real-device testing. `react-native-webrtc` moves the app off Expo Go onto a custom EAS dev client.
 
 #### ADR-010: Forward secrecy in 1:1 messaging — defer to Phase 2
 
@@ -3598,7 +3609,7 @@ This is the politically sensitive section. It is intentionally honest.
 | R10 | No TLS pinning on mobile                       | Medium                              | Phase 2 candidate                                           |
 | R11 | Server admin login uses hardcoded credentials  | Medium                              | Used for debugging only; replace with proper IAM in Phase 2 |
 | R12 | Cryptographic library not yet chosen           | Critical                            | ADR-006 must close before Sprint 5                          |
-| R13 | Calling stack not yet chosen                   | Critical                            | ADR-007 must close before Sprint 8                          |
+| R13 | Group call mesh cap (8) may strain real devices | Medium (was Critical: stack unchosen) | ADR-007 accepted 2026-08-31; watch battery/bandwidth at the 8-participant ceiling in manual testing |
 | R14 | Vault PIN derivation parameters not yet chosen | High                                | ADR-011 must close before Sprint 9                          |
 
 ### 20.2 Operational debt
@@ -3728,7 +3739,7 @@ These are explicit non-goals across all phases:
 | Question                                           | Owner       | Decision needed by |
 | -------------------------------------------------- | ----------- | ------------------ |
 | Crypto library: libsodium vs tweetnacl             | Abdul       | Sprint 5 start     |
-| Calling: react-native-webrtc + which TURN provider | Abdul, Eric | Sprint 8 start     |
+| ~~Calling: react-native-webrtc + which TURN provider~~ — resolved: react-native-webrtc + Metered.ca (ADR-007) | Abdul, Eric | Closed 2026-08-31 |
 | Argon2id parameters for vault                      | Abdul       | Sprint 9 start     |
 | Token storage: AsyncStorage vs SecureStore         | Abdul       | Sprint 2 review    |
 | Attachment storage: Postgres bytea vs S3           | Vishal      | Sprint 6 start     |

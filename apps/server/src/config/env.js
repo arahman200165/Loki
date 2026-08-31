@@ -15,5 +15,9 @@ export const env = {
   databaseSsl: (process.env.DATABASE_SSL || 'true').toLowerCase() !== 'false',
   databaseSslRejectUnauthorized:
     (process.env.DATABASE_SSL_REJECT_UNAUTHORIZED || 'true').toLowerCase() !== 'false',
-  databasePoolMax: Number(process.env.DATABASE_POOL_MAX || 10)
+  databasePoolMax: Number(process.env.DATABASE_POOL_MAX || 10),
+  // TURN-only provider (ADR-007) — mobile never holds this key directly;
+  // it fetches ephemeral credentials through the server proxy instead.
+  meteredAppName: process.env.METERED_APP_NAME || '',
+  meteredApiKey: process.env.METERED_API_KEY || ''
 };
